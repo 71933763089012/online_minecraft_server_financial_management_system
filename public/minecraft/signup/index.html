@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +14,8 @@
         }
 
         body {
-            background-color: #3c6e71; /* Minecrafty green-blue */
+            background-color: #3c6e71;
+            /* Minecrafty green-blue */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -24,10 +26,13 @@
 
         .signup-container {
             background-color: #222;
-            padding: 20px 40px;
+            padding: 20px;
             border: 4px solid #555;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
             text-align: center;
+            width: 360px;
+            /* include padding in width */
+            box-sizing: border-box;
         }
 
         h1 {
@@ -38,9 +43,12 @@
 
         input {
             width: 250px;
+            display: block;
+            /* explicit centering for block/inline quirks */
+            margin: 0 auto;
             padding: 8px;
             font-size: 16px;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
             font-family: 'Minecraft', monospace;
             border: 3px solid #888;
             background-color: #111;
@@ -49,7 +57,8 @@
         }
 
         input:focus {
-            border-color: #fff176; /* Yellow highlight */
+            border-color: #fff176;
+            /* Yellow highlight */
         }
 
         .btn {
@@ -77,26 +86,79 @@
         .btn-secondary:hover {
             background-color: #555;
         }
+
+        .input-group {
+            /* smaller default spacing */
+            margin-bottom: 12px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            /* centers input + error */
+            align-items: center;
+        }
+
+        .error-message {
+            color: #ff4d4d;
+            font-size: 14px;
+
+            display: block;
+            text-align: center;
+            margin-top: 4px;
+            max-width: 100%;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            /* breaks long words too */
+            word-break: break-word;
+
+            /* your animation */
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.25s ease, opacity 0.25s ease;
+        }
+
+        /* When an error is shown */
+        .error-message.show {
+            max-height: 6em;
+            /* enough to show one line */
+            opacity: 1;
+        }
     </style>
 
     <script src="../index.js"></script>
+
 </head>
+
 <body>
     <div class="signup-container">
         <h1>Sign Up</h1>
-    <form>
-        <input type="text" id="realname" placeholder="Real Name" name="realname"><br>
-        <input type="text" id="mcusername" placeholder="Minecraft Username" name="mcusername"><br>
-        <input type="password" id="password" placeholder="Password" name="password"><br>
-        <input type="tel" id="phone" placeholder="Phone Number" name="phone"><br>
-    </form>
+        <form id="signupForm">
+            <div class="input-group">
+                <input type="text" id="realname" placeholder="Real Name" name="realname">
+                <div class="error-message"></div>
+            </div>
+            <div class="input-group">
+                <input type="text" id="mcusername" placeholder="Minecraft Username" name="mcusername">
+                <div class="error-message"></div>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Password" name="password">
+                <div class="error-message"></div>
+            </div>
+            <div class="input-group">
+                <input type="tel" id="phone" placeholder="Phone Number" name="phone">
+                <div class="error-message"></div>
+            </div>
+        </form>
         <button class="btn" onclick="createAccount()">
             Create Account
         </button>
         <button class="btn btn-secondary" onclick="window.location.href='/minecraft/login'">
             Already have an account?
         </button>
+
     </div>
 
 </body>
+
 </html>

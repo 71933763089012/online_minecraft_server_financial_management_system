@@ -27,12 +27,12 @@ async function writeAccounts(accounts) {
 }
 
 app.post('/minecraft/signup', async (req, res) => {
-    try {
+  try {
     const { realname = '', mcusername = '', password = '', phone = '' } = req.body;
 
     // push array-of-strings as you requested
     const accounts = await readAccounts();
-    accounts.push({realname, mcusername, password, phone});
+    accounts.push({ realname, mcusername, password, phone });
     await writeAccounts(accounts);
 
     res.send('Account created (very simple demo).');
