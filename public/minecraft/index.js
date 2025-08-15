@@ -1,41 +1,4 @@
 async function createAccount() {
-    let hasError = false;
-
-    document.querySelectorAll('#signupForm input').forEach(input => {
-        const errorDiv = input.parentElement.querySelector('.error-message');
-        const value = input.value.trim();
-        let message = '';
-
-        if (value === '') {
-            message = 'This should be filled out';
-        } else if (input.id === 'password') {
-            if (value.length < 8) {
-                message = 'Must be at least 8 charectors'
-            } else if (value === value.toLowerCase()) {
-                message = 'Must contain at least 1 uppercase letter'
-            } else if (value === value.toUpperCase()) {
-                message = 'Must contain at least 1 lowercase letter'
-            } else if (!/\d/.test(value)) {
-                message = 'Must contain at least 1 number'
-            }
-        } else if (input.id === 'phone') {
-            if (!/^\d{8}$/.test(value)) {
-                message = "This doesn't look like a phone number";
-            }
-        }
-
-        if (message) {
-            errorDiv.textContent = message;
-            errorDiv.classList.add('show');
-            hasError = true;
-        } else {
-            errorDiv.classList.remove('show');
-            setTimeout(() => { errorDiv.textContent = ''; }, 250);
-        }
-    });
-
-    if (hasError) return;
-
     try {
         const response = await fetch("http://localhost:3000/minecraft/signup", {
             method: "POST",
@@ -48,12 +11,34 @@ async function createAccount() {
             })
         });
         if (!response.ok) {
-            alert("Error");
+            if (response.status === 400) {
+                const errorMessages = await response.json();
+                document.querySelectorAll('#signupForm .error-message').forEach((div, index) => {
+                    const key = Object.keys(errorMessages)[index];
+                    div.textContent = errorMessages[key];
+                    div.classList.add('show');
+                });
+            } else {
+                alert("Error");
+            }
             return;
         }
         alert("Success");
     }
     catch (e) {
         alert("Error: " + e);
+    }
+}
+
+const path = require('path');
+const ACCOUNTS_FILE = path.join(__dirname, 'data/accounts.json');
+
+async function readAccounts() {
+    try {
+        const txt = await fs.readFile(ACCOUNTS_FILE, 'utf8');
+        return JSON.parse(txt);
+    } catch (err) {
+        if (err.code === 'ENOENT') return []; // file not found -> start empty list
+        throw err; // other error -> crash so we notice
     }
 }
