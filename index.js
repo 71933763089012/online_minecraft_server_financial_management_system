@@ -79,13 +79,49 @@ app.post('/minecraft/signup', async (req, res) => {
       accounts.push({ realname, mcusername, password, phone });
       await writeAccounts(accounts);
 
-      res.send('Account created (very simple demo).');
+      res.cookie('mcusername', mcusername, { secure: true, sameSite: 'Strict' });
+      res.status(200).send('Account created successfully');
     }
   } catch (err) {
     console.error('Error saving account:', err);
     res.status(500).send('Server error');
   }
 });
+
+app.post('/minecraft/login', async (req, res) => {
+  try {
+    const { mcusername = '', password = '' } = req.body;
+
+    let errorMessages = { mcusername: '', password: '' };
+
+    if (mcusername === '') {
+      errorMessages.mcusername = 'This should be filled out';
+    } else {
+      const accounts = await readAccounts();
+      if (accounts.some(account => account.mcusername === mcusername && account.password === password)) {
+        res.cookie('mcusername', mcusername, { secure: true, sameSite: 'Strict' });
+        res.status(200).send('Account created successfully');
+        return;
+      } else {
+        errorMessages.mcusername = 'Username or password is incorrect';
+        errorMessages.password = 'Username or password is incorrect';
+      }
+    }
+
+    if (password === '') {
+      errorMessages.password = 'This should be filled out';
+
+      if (mcusername !== '') {
+        errorMessages.mcusername = 'Please enter your password';
+      }
+    }
+
+    res.status(400).json(errorMessages);
+  } catch (err) {
+    console.error('Error logging in:', err);
+    res.status(500).send('Server error');
+  }
+})
 
 // Optional: serve your static HTML from the same server
 app.use('/', express.static(path.join(__dirname, 'public'))); // put your HTML in ./public
