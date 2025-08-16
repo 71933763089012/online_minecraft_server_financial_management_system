@@ -1,14 +1,17 @@
 // app.js
-const express = require('express');
-const fs = require('fs').promises;
-const path = require('path');
+import crypto from 'crypto';
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import fs from 'fs/promises'; // use promises API for better async/await support
+import path from 'path';
 
 const app = express();
 const PORT = 3000;
-const ACCOUNTS_FILE = path.join(__dirname, 'public/minecraft/data/accounts.json');
-
+const ACCOUNTS_FILE = path.join(import.meta.dirname, 'public/minecraft/data/accounts.json');
 // parse form bodies
 // app.use(express.urlencoded({ extended: false }));
+app.use(express.json())
+app.use(cookieParser())
 app.use(express.json())
 
 async function readAccounts() {
@@ -79,6 +82,7 @@ app.post('/minecraft/signup', async (req, res) => {
       accounts.push({ realname, mcusername, password, phone });
       await writeAccounts(accounts);
 
+      res.cookie('user_id', await hash(mcusername), { secure: true, sameSite: 'Strict' });
       res.cookie('mcusername', mcusername, { secure: true, sameSite: 'Strict' });
       res.status(200).send('Account created successfully');
     }
@@ -99,6 +103,7 @@ app.post('/minecraft/login', async (req, res) => {
     } else {
       const accounts = await readAccounts();
       if (accounts.some(account => account.mcusername === mcusername && account.password === password)) {
+        res.cookie('user_id', await hash(mcusername), { secure: true, sameSite: 'Strict' });
         res.cookie('mcusername', mcusername, { secure: true, sameSite: 'Strict' });
         res.status(200).send('Account created successfully');
         return;
@@ -123,9 +128,33 @@ app.post('/minecraft/login', async (req, res) => {
   }
 })
 
+app.get('/minecraft/me', async (req, res) => {
+  const mcusername = req.cookies.mcusername;
+  if (!mcusername) {
+    return res.status(401).send('Unauthorized');
+  }
+
+  const accounts = await readAccounts();
+  const account = accounts.find(acc => acc.mcusername === mcusername);
+  if (!account) {
+    return res.status(404).send('Account not found');
+  }
+  if (req.cookies.user_id !== hash(account.mcusername)) {
+    return res.status(403).send('Forbidden');
+  }
+
+  res.json(account);
+});
+
 // Optional: serve your static HTML from the same server
-app.use('/', express.static(path.join(__dirname, 'public'))); // put your HTML in ./public
+app.use('/', express.static(path.join(import.meta.dirname, 'public'))); // put your HTML in ./public
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+const hashkey = await fs.readFile('./hashkey')
+
+function hash(input) {
+  return crypto.createHmac('sha256', hashkey).update(input).digest('hex');
+}
