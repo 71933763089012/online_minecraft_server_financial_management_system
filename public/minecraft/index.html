@@ -3,39 +3,168 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>24htcE Server</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Minecraft Server — Main</title>
 
     <style>
+        @font-face {
+            font-family: 'Minecraft';
+            src: url('/minecraft/fonts/Minecraft.ttf') format('truetype');
+        }
+
+        :root {
+            --bg: #2f5860;
+            --panel: #222;
+            --panel-border: #555;
+            --accent-green: #2ecc71;
+            --accent-red: #e74c3c;
+            --muted: #cfcfcf;
+        }
+
+        html,
         body {
-            background-color: lightblue;
+            height: 100%;
             margin: 0;
+            font-family: 'Minecraft', monospace;
+            background: linear-gradient(180deg, var(--bg), #21494b 140%);
+        }
+
+        .wrap {
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            height: 100vh;
-            font-family: verdana;
+            justify-content: center;
+            padding: 28px;
+            box-sizing: border-box;
         }
 
-        button {
-            font-size: 20px;
-            padding: 12px 24px;
-            background-color: #0078d7;
+        .card {
+            width: 780px;
+            max-width: 98vw;
+            background: var(--panel);
+            border: 4px solid var(--panel-border);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
+            border-radius: 0;
+            /* sharp 90° corners */
+            padding: 26px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+        }
+
+        h1 {
+            margin: 0;
             color: white;
-            border: none;
-            border-radius: 8px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .status-button {
+            width: 210px;
+            height: 210px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 24px;
+            color: white;
+            font-weight: 700;
+            border: 8px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
             cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.2s, transform 0.2s;
+            user-select: none;
+            transition: transform 150ms ease, box-shadow 150ms ease;
+            text-align: center;
+            padding: 12px;
         }
 
-        button:hover {
-            background-color: #005fa3;
-            transform: translateY(-2px);
+        .status-button:active {
+            transform: scale(0.98);
         }
 
-        button:active {
-            transform: translateY(0);
+        .status-button.green {
+            background: linear-gradient(180deg, var(--accent-green), #27ae60);
+        }
+
+        .status-button.red {
+            background: linear-gradient(180deg, var(--accent-red), #c0392b);
+        }
+
+        .balance {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .balance small {
+            color: var(--muted);
+            display: block;
+            font-size: 12px;
+        }
+
+        .balance .amount {
+            font-size: 22px;
+            font-weight: 800;
+            color: rgba(255, 0, 0, 0.65);
+        }
+
+        .balance .estimate {
+            font-size: 14px;
+            margin-top: 6px;
+            color: var(--muted);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        label {
+            font-size: 12px;
+            color: var(--muted);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 3px solid #3a3a3a;
+            background: #111;
+            color: white;
+            font-family: 'Minecraft', monospace;
+            font-size: 13px;
+        }
+
+        .account {
+            position: absolute;
+            right: 26px;
+            top: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: rgba(0, 0, 0, 0.18);
+            border: 3px solid rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+        }
+
+        .account svg {
+            width: 22px;
+            height: 22px;
+            fill: white;
         }
     </style>
 
@@ -44,15 +173,83 @@
 </head>
 
 <body>
-    <button onclick="window.location.href='/minecraft/login'">
-        Login
-    </button>
 
-    <p id="accountInfo">Loading</p>
+    <div class="wrap">
+        <div class="card">
+
+            <h1>Server subscription</h1>
+
+            <div id="statusButton" class="status-button green" role="button" tabindex="0" aria-pressed="true">
+                <div>
+                    <div style="font-size:14px; opacity:0.85">Your access</div>
+                    <div id="statusLabel" style="font-size:28px; margin-top:6px">ACTIVE</div>
+                </div>
+            </div>
+
+            <div class="balance">
+                <small>Amount you owe</small>
+                <div class="amount" id="userOwe">? DKK</div>
+                <div class="estimate" id="estimatedNext">Next month: ? DKK</div>
+            </div>
+
+            <div class="controls">
+                <div>
+                    <label for="maxCost">Maximum acceptable monthly cost (DKK)</label>
+                    <input id="maxCost" type="number" min="0" value="10">
+                </div>
+
+                <div>
+                    <label for="minPlayers">Minimum number of active players</label>
+                    <input id="minPlayers" type="number" min="0" value="2">
+                </div>
+            </div>
+
+            <div class="account" title="Account" role="link" onclick="location.href='/minecraft/account'"
+                aria-label="Account">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                        d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.9V22h19.2v-2.7c0-3.3-6.4-4.9-9.6-4.9z" />
+                </svg>
+            </div>
+
+        </div>
+    </div>
 
     <script>
-        me()
+        (async function () {
+            const account = await me()
+            document.getElementById("userOwe").textContent = `${account.owe} DKK`;
+            document.getElementById("maxCost").value = account.max_cost;
+            document.getElementById("minPlayers").value = account.min_players;
+        })();
+
+        function debounce(fn, delay) {
+            let timer;
+            return (...args) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn(...args), delay);
+            };
+        }
+
+        const debouncedSave = debounce(() => {
+            saveSettings({
+                max_cost: document.getElementById("maxCost").value,
+                min_players: document.getElementById("minPlayers").value
+            });
+        }, 10000); // 10000 ms = 10 seconds
+
+        document.querySelectorAll(".controls input").forEach(input => {
+            input.addEventListener("input", debouncedSave);
+        });
+
+        window.addEventListener("beforeunload", () => {
+            saveSettings({
+                max_cost: document.getElementById("maxCost").value,
+                min_players: document.getElementById("minPlayers").value
+            });
+        });
     </script>
+
 </body>
 
 </html>

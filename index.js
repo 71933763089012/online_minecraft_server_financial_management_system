@@ -79,10 +79,10 @@ app.post('/minecraft/signup', async (req, res) => {
     } else {
       // push array-of-strings as you requested
       const accounts = await readAccounts();
-      accounts.push({ realname, mcusername, password, phone });
+      accounts.push({ realname, mcusername, password, phone, owe: 0, max_cost: 10, min_players: 2, status: 'inactive' });
       await writeAccounts(accounts);
 
-      res.cookie('user_id', await hash(mcusername), { secure: true, sameSite: 'Strict' });
+      res.cookie('user_id', hash(mcusername), { secure: true, sameSite: 'Strict' });
       res.cookie('mcusername', mcusername, { secure: true, sameSite: 'Strict' });
       res.status(200).send('Account created successfully');
     }
@@ -103,7 +103,7 @@ app.post('/minecraft/login', async (req, res) => {
     } else {
       const accounts = await readAccounts();
       if (accounts.some(account => account.mcusername === mcusername && account.password === password)) {
-        res.cookie('user_id', await hash(mcusername), { secure: true, sameSite: 'Strict' });
+        res.cookie('user_id', hash(mcusername), { secure: true, sameSite: 'Strict' });
         res.cookie('mcusername', mcusername, { secure: true, sameSite: 'Strict' });
         res.status(200).send('Account created successfully');
         return;
@@ -144,6 +144,44 @@ app.get('/minecraft/me', async (req, res) => {
   }
 
   res.json(account);
+});
+
+const illigalKeys = ['owe', 'admin', 'free', 'additionalusers']
+app.post('/minecraft/saveSettings', async (req, res) => {
+  try {
+    const mcusername = req.cookies.mcusername;
+    if (!mcusername) {
+      return res.status(401).send("Unauthorized");
+    }
+
+    const accounts = await readAccounts();
+    const accountIndex = accounts.findIndex(acc => acc.mcusername === mcusername);
+    if (accountIndex === -1) {
+      return res.status(404).send("Account not found");
+    }
+
+    const account = accounts[accountIndex];
+    if (req.cookies.user_id !== hash(account.mcusername)) {
+      return res.status(403).send("Forbidden");
+    }
+
+    // Only update keys that exist on the account object
+    for (const [key, value] of Object.entries(req.body)) {
+      if (key in account) {
+        if (key in illigalKeys) return res.status(403).send("Forbidden");
+        account[key] = value;
+      } else {
+        return res.status(400).send(`Invalid setting: ${key}`);
+      }
+    }
+
+    accounts[accountIndex] = account;
+    await writeAccounts(accounts);
+    res.status(200).send("Settings updated successfully");
+  } catch (err) {
+    console.error("Error updating settings:", err);
+    res.status(500).send("Internal server error");
+  }
 });
 
 // Optional: serve your static HTML from the same server

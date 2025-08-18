@@ -81,9 +81,30 @@ async function me() {
             }
             return;
         }
-        const account = await response.json();
-        document.getElementById("accountInfo").textContent = `Real Name: ${account.realname}, MC Username: ${account.mcusername}, Phone: ${account.phone}`;
+        return await response.json();
+
     } catch (e) {
+        alert("Error: " + e);
+    }
+}
+
+async function saveSettings(settings) {
+    try {
+        const response = await fetch("http://localhost:3000/minecraft/saveSettings", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(settings)
+        });
+        if (!response.ok) {
+            if (response.status === 400) {
+
+            } else {
+                alert("Error");
+            }
+            return;
+        }
+    }
+    catch (e) {
         alert("Error: " + e);
     }
 }
