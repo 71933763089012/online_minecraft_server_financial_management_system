@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minecraft Account</title>
+    <link rel="icon" href="/minecraft/favicon.ico" type="image/x-icon" />
+
+    <style>
+        /* Load Minecraft font */
+        @font-face {
+            font-family: 'Minecraft';
+            src: url('/minecraft/fonts/Minecraft.ttf') format('truetype');
+        }
+
+        :root {
+            --bg: #3c6e71;
+            --panel: #222;
+            --panel-2: #333;
+            --border: #555;
+            --border-strong: #888;
+            --text: #fff;
+            --text-dim: #ddd;
+            --btn: #444;
+            --btn-hover: #666;
+            --btn-primary: #2d8a34;
+            --btn-primary-hover: #3da544;
+            --overlay: rgba(0, 0, 0, 0.6);
+            --input-bg: #111;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Minecraft', monospace;
+            color: var(--text);
+        }
+
+        .account-container {
+            background-color: var(--panel);
+            padding: 20px;
+            border: 4px solid var(--border);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            text-align: left;
+            width: 420px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 32px;
+            margin: 0 0 20px 0;
+        }
+
+        .info-card {
+            background-color: var(--panel-2);
+            border: 3px solid var(--border);
+            padding: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .info-text {
+            flex-grow: 1;
+        }
+
+        .info-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: var(--text-dim);
+            word-break: break-word;
+        }
+
+        .btn-edit {
+            font-family: 'Minecraft', monospace;
+            font-size: 14px;
+            padding: 6px 12px;
+            border: 2px solid var(--border-strong);
+            background-color: var(--btn);
+            color: var(--text);
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-left: 10px;
+            height: fit-content;
+        }
+
+        .btn-edit:hover {
+            background-color: var(--btn-hover);
+        }
+
+        .btn {
+            font-family: 'Minecraft', monospace;
+            font-size: 18px;
+            padding: 10px 20px;
+            border: 3px solid var(--border-strong);
+            background-color: var(--btn);
+            color: var(--text);
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: block;
+            margin: 10px auto 0 auto;
+            width: 250px;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: var(--btn-hover);
+        }
+
+        .btn-secondary {
+            background-color: #2a2a2a;
+        }
+
+        .btn-secondary:hover {
+            background-color: #4a4a4a;
+        }
+
+        /* ===== Modal ===== */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--overlay);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 520px;
+            background: var(--panel);
+            border: 4px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            padding: 18px;
+        }
+
+        .modal-title {
+            text-align: center;
+            font-size: 24px;
+            margin: 6px 0 16px 0;
+        }
+
+        .field {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            background: var(--input-bg);
+            color: var(--text);
+            border: 3px solid var(--border);
+            padding: 10px 12px;
+            font-family: 'Minecraft', monospace;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        .modal-btn {
+            font-family: 'Minecraft', monospace;
+            font-size: 16px;
+            padding: 8px 16px;
+            border: 3px solid var(--border-strong);
+            background-color: var(--btn);
+            color: var(--text);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .modal-btn:hover {
+            background-color: var(--btn-hover);
+        }
+
+        .modal-btn.secondary {
+            background-color: #2a2a2a;
+        }
+
+        .modal-btn.secondary:hover {
+            background-color: #4a4a4a;
+        }
+
+        .modal-btn.primary {
+            background-color: var(--btn-primary);
+            border-color: var(--btn-primary-hover);
+        }
+
+        .modal-btn.primary:hover {
+            background-color: var(--btn-primary-hover);
+        }
+
+        /* Prevent background scroll when modal is open */
+        body.modal-open {
+            overflow: hidden;
+        }
+    </style>
+
+    <script src="../index.js"></script>
+
+</head>
+
+<body>
+    <div class="account-container">
+        <h1>My Account</h1>
+
+        <div class="info-card">
+            <div class="info-text">
+                <div class="info-title">Name</div>
+                <div class="info-value">???</div>
+            </div>
+            <button class="btn-edit">Edit</button>
+        </div>
+
+        <div class="info-card">
+            <div class="info-text">
+                <div class="info-title">Phone Number</div>
+                <div class="info-value">???</div>
+            </div>
+            <button class="btn-edit">Edit</button>
+        </div>
+
+        <div class="info-card">
+            <div class="info-text">
+                <div class="info-title">Minecraft Username</div>
+                <div class="info-value">???</div>
+            </div>
+            <button class="btn-edit">Edit</button>
+        </div>
+
+        <div class="info-card additional-usernames" id="additionalUsernames">
+            <div class="info-text">
+                <div class="info-title">Additional Usernames</div>
+                <div class="info-value">None added</div>
+            </div>
+            <button class="btn-edit" aria-label="Add Username">Add</button>
+        </div>
+
+        <button class="btn" id="changePasswordBtn">Change Password</button>
+        <button class="btn btn-secondary">Log Out</button>
+    </div>
+
+    <!-- Overlay + Modal (hidden by default) -->
+    <div class="overlay" id="overlay" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal" role="document">
+            <div class="modal-title" id="modalTitle">Change your …</div>
+            <form id="modalForm" autocomplete="off">
+                <div class="field">
+                    <label id="primaryLabel" for="primaryInput">Label</label>
+                    <input id="primaryInput" type="text" placeholder="" />
+                </div>
+                <div class="field">
+                    <label for="passwordInput">Current Password</label>
+                    <input id="passwordInput" type="password" placeholder="Current Password" />
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="modal-btn secondary" id="cancelBtn">Cancel</button>
+                    <button type="button" class="modal-btn primary" id="doneBtn">Done</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (async function () {
+            const account = await me()
+            document.getElementById("userOwe").textContent = `${-1 * account.owe} DKK`;
+            if (await account.owe > 0) {
+                document.getElementById("userOwe").style.color = "var(--accent-red)";
+            } else {
+                document.getElementById("userOwe").style.color = "var(--accent-green)";
+            }
+            document.getElementById("maxCost").value = account.max_cost;
+            document.getElementById("minPlayers").value = account.min_players;
+        })();
+
+        const overlay = document.getElementById('overlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const primaryLabel = document.getElementById('primaryLabel');
+        const primaryInput = document.getElementById('primaryInput');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const doneBtn = document.getElementById('doneBtn');
+        const changePasswordBtn = document.getElementById('changePasswordBtn');
+
+        function openModal(param) {
+            const pretty = String(param).trim();
+            modalTitle.textContent = `Change your ${pretty}`;
+            primaryLabel.textContent = pretty;
+            primaryInput.placeholder = pretty;
+            primaryInput.value = '';
+            document.getElementById('passwordInput').value = '';
+            overlay.classList.add('active');
+            overlay.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+            // focus first input for convenience
+            setTimeout(() => primaryInput.focus(), 0);
+        }
+
+        function closeModal() {
+            overlay.classList.remove('active');
+            overlay.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+        }
+
+        // Attach to all "Edit" buttons EXCEPT the "+" one
+        document.querySelectorAll('.btn-edit').forEach(btn => {
+            const label = btn.textContent.trim().toLowerCase();
+            if (label === 'edit') {
+                btn.addEventListener('click', () => {
+                    // Find the nearest info title for the parameter name
+                    const card = btn.closest('.info-card');
+                    const titleEl = card?.querySelector('.info-title');
+                    const param = titleEl ? titleEl.textContent.trim() : 'Field';
+                    openModal(param);
+                });
+            }
+        });
+
+        // Change Password button opens modal for "Password"
+        changePasswordBtn.addEventListener('click', () => openModal('Password'));
+
+        // Close actions
+        cancelBtn.addEventListener('click', closeModal);
+        doneBtn.addEventListener('click', closeModal);
+
+        // Optional: ESC to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('active')) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+
+</html>
