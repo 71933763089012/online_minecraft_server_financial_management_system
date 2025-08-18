@@ -4,13 +4,12 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import fs from 'fs/promises'; // use promises API for better async/await support
 import path from 'path';
+import { hashPassword, verifyPassword } from "./crypto-scrypt.js";
 
 const app = express();
 const PORT = 3000;
 const ACCOUNTS_FILE = path.join(import.meta.dirname, 'public/minecraft/data/accounts.json');
-// parse form bodies
-// app.use(express.urlencoded({ extended: false }));
-app.use(express.json())
+
 app.use(cookieParser())
 app.use(express.json())
 
@@ -79,7 +78,8 @@ app.post('/minecraft/signup', async (req, res) => {
     } else {
       // push array-of-strings as you requested
       const accounts = await readAccounts();
-      accounts.push({ realname, mcusername, password, phone, owe: 0, max_cost: 10, min_players: 2, status: 'inactive' });
+      const passwordHash = await hashPassword(password)
+      accounts.push({ realname, mcusername, password: passwordHash, phone, owe: 0, max_cost: 10, min_players: 2, status: 'inactive' });
       await writeAccounts(accounts);
 
       res.cookie('user_id', hash(mcusername), { secure: true, sameSite: 'Strict' });
@@ -101,11 +101,11 @@ app.post('/minecraft/login', async (req, res) => {
     if (mcusername === '') {
       errorMessages.mcusername = 'This should be filled out';
     } else {
-      const accounts = await readAccounts();
-      if (accounts.some(account => account.mcusername === mcusername && account.password === password)) {
+      const account = (await readAccounts()).find(account => account.mcusername === mcusername);
+      if (account && await verifyPassword(password, account.password)) {
         res.cookie('user_id', hash(mcusername), { secure: true, sameSite: 'Strict' });
         res.cookie('mcusername', mcusername, { secure: true, sameSite: 'Strict' });
-        res.status(200).send('Account created successfully');
+        res.status(200).send('Login successful');
         return;
       } else {
         errorMessages.mcusername = 'Username or password is incorrect';

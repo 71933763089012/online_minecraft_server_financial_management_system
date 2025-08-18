@@ -218,7 +218,12 @@
     <script>
         (async function () {
             const account = await me()
-            document.getElementById("userOwe").textContent = `${account.owe} DKK`;
+            document.getElementById("userOwe").textContent = `${-1 * account.owe} DKK`;
+            if (await account.owe > 0) {
+                document.getElementById("userOwe").style.color = "var(--accent-red)";
+            } else {
+                document.getElementById("userOwe").style.color = "var(--accent-green)";
+            }
             document.getElementById("maxCost").value = account.max_cost;
             document.getElementById("minPlayers").value = account.min_players;
         })();
@@ -231,22 +236,16 @@
             };
         }
 
+        const saveFrequency = 5000; // 5 seconds
         const debouncedSave = debounce(() => {
             saveSettings({
                 max_cost: document.getElementById("maxCost").value,
                 min_players: document.getElementById("minPlayers").value
             });
-        }, 10000); // 10000 ms = 10 seconds
+        }, saveFrequency);
 
         document.querySelectorAll(".controls input").forEach(input => {
             input.addEventListener("input", debouncedSave);
-        });
-
-        window.addEventListener("beforeunload", () => {
-            saveSettings({
-                max_cost: document.getElementById("maxCost").value,
-                min_players: document.getElementById("minPlayers").value
-            });
         });
     </script>
 
