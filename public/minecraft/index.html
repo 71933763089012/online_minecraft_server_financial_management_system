@@ -10,7 +10,7 @@
     <style>
         @font-face {
             font-family: 'Minecraft';
-            src: url('/minecraft/fonts/Minecraft.ttf') format('truetype');
+            src: url('/minecraft/fonts/Minecraft Font.ttf') format('truetype');
         }
 
         :root {
@@ -24,10 +24,14 @@
 
         html,
         body {
-            height: 100%;
+            background-color: #3c6e71;
+            /* Minecrafty green-blue */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             margin: 0;
             font-family: 'Minecraft', monospace;
-            background: linear-gradient(180deg, var(--bg), #21494b 140%);
         }
 
         .wrap {
@@ -84,12 +88,12 @@
             transform: scale(0.98);
         }
 
-        .status-button.green {
-            background: linear-gradient(180deg, var(--accent-green), #27ae60);
+        .status-button.red {
+            background: var(--accent-red);
         }
 
-        .status-button.red {
-            background: linear-gradient(180deg, var(--accent-red), #c0392b);
+        .status-button.green {
+            background: var(--accent-green);
         }
 
         .balance {
@@ -179,15 +183,15 @@
 
             <h1>Server subscription</h1>
 
-            <div id="statusButton" class="status-button green" role="button" tabindex="0" aria-pressed="true">
+            <div id="statusButton" class="status-button red" role="button" tabindex="0" aria-pressed="true">
                 <div>
                     <div style="font-size:14px; opacity:0.85">Your access</div>
-                    <div id="statusLabel" style="font-size:28px; margin-top:6px">ACTIVE</div>
+                    <div id="statusLabel" style="font-size:28px; margin-top:6px">INACTIVE</div>
                 </div>
             </div>
 
             <div class="balance">
-                <small>Amount you owe</small>
+                <small>Your Balance</small>
                 <div class="amount" id="userOwe">? DKK</div>
                 <div class="estimate" id="estimatedNext">Next month: ? DKK</div>
             </div>

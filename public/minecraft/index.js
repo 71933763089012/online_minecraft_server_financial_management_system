@@ -109,6 +109,39 @@ async function saveSettings(settings) {
     }
 }
 
+async function updateAccount(password, settings) {
+    try {
+        const response = await fetch("http://localhost:3000/minecraft/account", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+                password, settings
+            })
+        });
+        if (!response.ok) {
+            if (response.status === 400) {
+
+            } else {
+                alert("Error");
+            }
+            return false;
+        }
+        return true;
+    } catch (e) {
+        alert("Error: " + e);
+    }
+}
+
+function logout() {
+    // Remove all cookies visible to JS
+    document.cookie.split(";").forEach(c => {
+        document.cookie = c.trim().split("=")[0] +
+            "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/";
+    })
+
+    window.location.href = "/minecraft/login";
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const loginForm = document.getElementById("loginForm");
     if (loginForm) {

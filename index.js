@@ -79,11 +79,11 @@ app.post('/minecraft/signup', async (req, res) => {
       // push array-of-strings as you requested
       const accounts = await readAccounts();
       const passwordHash = await hashPassword(password)
-      accounts.push({ realname, mcusername, password: passwordHash, phone, owe: 0, max_cost: 10, min_players: 2, status: 'inactive' });
+      accounts.push({ realname, mcusername, additionalusers: {}, password: passwordHash, phone, owe: 0, max_cost: 10, min_players: 2, status: 'inactive' });
       await writeAccounts(accounts);
 
-      res.cookie('user_id', hash(mcusername), { secure: true, sameSite: 'Strict' });
-      res.cookie('mcusername', mcusername, { secure: true, sameSite: 'Strict' });
+      res.cookie('user_id', hash(mcusername), { secure: true, sameSite: 'Strict', httpOnly: true });
+      res.cookie('mcusername', mcusername, { secure: true, sameSite: 'Strict', httpOnly: true });
       res.status(200).send('Account created successfully');
     }
   } catch (err) {
@@ -103,8 +103,8 @@ app.post('/minecraft/login', async (req, res) => {
     } else {
       const account = (await readAccounts()).find(account => account.mcusername === mcusername);
       if (account && await verifyPassword(password, account.password)) {
-        res.cookie('user_id', hash(mcusername), { secure: true, sameSite: 'Strict' });
-        res.cookie('mcusername', mcusername, { secure: true, sameSite: 'Strict' });
+        res.cookie('user_id', hash(mcusername), { secure: true, sameSite: 'Strict', httpOnly: true });
+        res.cookie('mcusername', mcusername, { secure: true, sameSite: 'Strict', httpOnly: true });
         res.status(200).send('Login successful');
         return;
       } else {
@@ -143,6 +143,7 @@ app.get('/minecraft/me', async (req, res) => {
     return res.status(403).send('Forbidden');
   }
 
+  delete account['password'];
   res.json(account);
 });
 
@@ -168,7 +169,7 @@ app.post('/minecraft/saveSettings', async (req, res) => {
     // Only update keys that exist on the account object
     for (const [key, value] of Object.entries(req.body)) {
       if (key in account) {
-        if (key in illigalKeys) return res.status(403).send("Forbidden");
+        if (illigalKeys.includes(key)) return res.status(403).send("Forbidden");
         account[key] = value;
       } else {
         return res.status(400).send(`Invalid setting: ${key}`);
@@ -180,6 +181,50 @@ app.post('/minecraft/saveSettings', async (req, res) => {
     res.status(200).send("Settings updated successfully");
   } catch (err) {
     console.error("Error updating settings:", err);
+    res.status(500).send("Internal server error");
+  }
+});
+
+app.post('/minecraft/account', async (req, res) => {
+  try {
+    const mcusername = req.cookies.mcusername;
+    if (!mcusername) {
+      return res.status(401).send("Unauthorized");
+    }
+    const accounts = await readAccounts();
+    const accountIndex = accounts.findIndex(acc => acc.mcusername === mcusername);
+    if (accountIndex === -1) {
+      return res.status(404).send("Account not found");
+    }
+    const account = accounts[accountIndex];
+    if (req.cookies.user_id !== hash(account.mcusername)) {
+      return res.status(403).send("Forbidden");
+    }
+    const { password, settings } = req.body;
+    if (!password) {
+      return res.status(400).send("Password is required");
+    }
+    if (await verifyPassword(account.password, password)) {
+      return res.status(403).send("Forbidden");
+    }
+
+    if (settings) {
+      // Only update keys that exist on the account object
+      for (const [key, value] of Object.entries(settings)) {
+        if (key in account) {
+          if (illigalKeys.includes(key)) return res.status(403).send("Forbidden");
+          account[key] = value;
+        } else {
+          return res.status(400).send(`Invalid setting: ${key}`);
+        }
+      }
+    }
+
+    accounts[accountIndex] = account;
+    await writeAccounts(accounts);
+    res.status(200).send("Account updated successfully");
+  } catch (err) {
+    console.error("Error updating Account:", err);
     res.status(500).send("Internal server error");
   }
 });

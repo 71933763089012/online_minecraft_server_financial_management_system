@@ -11,7 +11,7 @@
         /* Load Minecraft font */
         @font-face {
             font-family: 'Minecraft';
-            src: url('/minecraft/fonts/Minecraft.ttf') format('truetype');
+            src: url('/minecraft/fonts/Minecraft Font.ttf') format('truetype');
         }
 
         :root {
@@ -240,7 +240,7 @@
         <div class="info-card">
             <div class="info-text">
                 <div class="info-title">Name</div>
-                <div class="info-value">???</div>
+                <div class="info-value" id="name">???</div>
             </div>
             <button class="btn-edit">Edit</button>
         </div>
@@ -248,7 +248,7 @@
         <div class="info-card">
             <div class="info-text">
                 <div class="info-title">Phone Number</div>
-                <div class="info-value">???</div>
+                <div class="info-value" id="phone">???</div>
             </div>
             <button class="btn-edit">Edit</button>
         </div>
@@ -256,7 +256,7 @@
         <div class="info-card">
             <div class="info-text">
                 <div class="info-title">Minecraft Username</div>
-                <div class="info-value">???</div>
+                <div class="info-value" id="username">???</div>
             </div>
             <button class="btn-edit">Edit</button>
         </div>
@@ -264,13 +264,14 @@
         <div class="info-card additional-usernames" id="additionalUsernames">
             <div class="info-text">
                 <div class="info-title">Additional Usernames</div>
-                <div class="info-value">None added</div>
+                <div class="info-value" id="additionalusers">None added</div>
             </div>
-            <button class="btn-edit" aria-label="Add Username">Add</button>
+            <button class="btn-edit" aria-label="Add Username" onclick="alert('Coming Soon!')">Add</button>
         </div>
 
         <button class="btn" id="changePasswordBtn">Change Password</button>
-        <button class="btn btn-secondary">Log Out</button>
+        <button class="btn btn-secondary" onclick="logout()">Log Out</button>
+        <button class="btn btn-secondary" onclick="location.href='/minecraft'">Back</button>
     </div>
 
     <!-- Overlay + Modal (hidden by default) -->
@@ -298,14 +299,22 @@
     <script>
         (async function () {
             const account = await me()
-            document.getElementById("userOwe").textContent = `${-1 * account.owe} DKK`;
-            if (await account.owe > 0) {
-                document.getElementById("userOwe").style.color = "var(--accent-red)";
+            document.getElementById("name").textContent = account.realname || "???"
+            document.getElementById("phone").textContent = account.phone || "???"
+            document.getElementById("username").textContent = account.mcusername || "???"
+
+            const additionalEl = document.getElementById("additionalusers");
+            if (account.additionalusers && account.additionalusers.length > 0) {
+                additionalEl.innerHTML = account.additionalusers.map(user => {
+                    if (user.confirmed) {
+                        return `<div>${user.mcusername}</div>`;
+                    } else {
+                        return `<div style="color: orange;">${user.mcusername}</div>`;
+                    }
+                }).join("");
             } else {
-                document.getElementById("userOwe").style.color = "var(--accent-green)";
+                additionalEl.textContent = "None added";
             }
-            document.getElementById("maxCost").value = account.max_cost;
-            document.getElementById("minPlayers").value = account.min_players;
         })();
 
         const overlay = document.getElementById('overlay');
@@ -316,17 +325,19 @@
         const doneBtn = document.getElementById('doneBtn');
         const changePasswordBtn = document.getElementById('changePasswordBtn');
 
+        let currentField = null; // track what is being edited
+
         function openModal(param) {
-            const pretty = String(param).trim();
-            modalTitle.textContent = `Change your ${pretty}`;
-            primaryLabel.textContent = pretty;
-            primaryInput.placeholder = pretty;
+            param = String(param).trim();
+            currentField = param.toLowerCase(); // store lowercase field name
+            modalTitle.textContent = `Change your ${param}`;
+            primaryLabel.textContent = param;
+            primaryInput.placeholder = param;
             primaryInput.value = '';
             document.getElementById('passwordInput').value = '';
             overlay.classList.add('active');
             overlay.setAttribute('aria-hidden', 'false');
             document.body.classList.add('modal-open');
-            // focus first input for convenience
             setTimeout(() => primaryInput.focus(), 0);
         }
 
@@ -336,34 +347,64 @@
             document.body.classList.remove('modal-open');
         }
 
-        // Attach to all "Edit" buttons EXCEPT the "+" one
         document.querySelectorAll('.btn-edit').forEach(btn => {
             const label = btn.textContent.trim().toLowerCase();
             if (label === 'edit') {
                 btn.addEventListener('click', () => {
-                    // Find the nearest info title for the parameter name
                     const card = btn.closest('.info-card');
                     const titleEl = card?.querySelector('.info-title');
                     const param = titleEl ? titleEl.textContent.trim() : 'Field';
                     openModal(param);
                 });
+            } else if (label === 'add') {
+
             }
         });
 
         // Change Password button opens modal for "Password"
         changePasswordBtn.addEventListener('click', () => openModal('Password'));
 
-        // Close actions
         cancelBtn.addEventListener('click', closeModal);
-        doneBtn.addEventListener('click', closeModal);
+        doneBtn.addEventListener('click', async () => {
+            const password = document.getElementById('passwordInput').value.trim();
+            const newValue = primaryInput.value.trim();
 
-        // Optional: ESC to close
+            if (!password) {
+                alert("Please enter your current password.");
+                return;
+            }
+
+            let settings = {};
+            if (currentField === "name") settings.realname = newValue;
+            else if (currentField === "phone number") settings.phone = newValue;
+            else if (currentField === "minecraft username") settings.mcusername = newValue;
+            else if (currentField === "additional usernames") settings.additionalusers = newValue;
+            else if (currentField === "password") settings.password = newValue;
+
+            try {
+                const succes = await updateAccount(password, settings);
+                if (succes) {
+                    if (settings.realname) document.getElementById("name").textContent = settings.realname;
+                    if (settings.phone) document.getElementById("phone").textContent = settings.phone;
+                    if (settings.mcusername) document.getElementById("username").textContent = settings.mcusername;
+                    if (settings.additionalusers) document.getElementById("additionalusers").textContent = settings.additionalusers;
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Failed to update account.");
+            }
+
+            closeModal();
+        });
+
+        // ESC to close
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && overlay.classList.contains('active')) {
                 closeModal();
             }
         });
     </script>
+
 </body>
 
 </html>
