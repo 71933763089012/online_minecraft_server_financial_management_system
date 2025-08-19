@@ -157,3 +157,9 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+async function USDtoDKK(USD) {
+    const res = await fetch("https://api.frankfurter.app/latest?from=USD&to=DKK");
+    const data = await res.json();
+    return USD * data.rates.DKK;
+}
