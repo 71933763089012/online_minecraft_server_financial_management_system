@@ -20,6 +20,8 @@
             --accent-green: #2ecc71;
             --accent-red: #e74c3c;
             --muted: #cfcfcf;
+            --dropdown-bg: #111;
+            --dropdown-border: #333;
         }
 
         html,
@@ -57,6 +59,149 @@
             align-items: center;
             gap: 20px;
             position: relative;
+        }
+
+        /* NEW: profile selector */
+        .profile-select {
+            width: 100%;
+            max-width: 420px;
+            position: relative;
+        }
+
+        .profile-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border: 3px solid #3a3a3a;
+            background: #111;
+            color: white;
+            font-family: 'Minecraft', monospace;
+            font-size: 16px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .profile-input input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            font-family: inherit;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        .profile-input .arrow {
+            width: 36px;
+            height: 36px;
+            display: grid;
+            place-items: center;
+            border-radius: 6px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: var(--dropdown-bg);
+            border: 2px solid var(--dropdown-border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            z-index: 30;
+            max-height: 260px;
+            overflow: auto;
+            display: none;
+        }
+
+        .dropdown.open {
+            display: block;
+        }
+
+        .profile-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .profile-item:last-child {
+            border-bottom: 0
+        }
+
+        .profile-item .left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .profile-icon {
+            width: 28px;
+            height: 20px;
+            display: inline-block;
+            /* placeholder box for icons; real icons will be supplied later */
+            background: rgba(255, 255, 255, 0.04);
+            border: 2px solid rgba(255, 255, 255, 0.03);
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .profile-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .profile-item.active {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .profile-item.disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+
+        .toggle-btn {
+            width: 36px;
+            height: 28px;
+            display: grid;
+            place-items: center;
+            border-radius: 6px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn .plus {
+            width: 18px;
+            height: 18px;
+            display: inline-block;
+            border-radius: 3px;
+            background: var(--accent-green);
+            color: white;
+            font-weight: 700;
+            line-height: 18px;
+            text-align: center;
+        }
+
+        .toggle-btn .trash {
+            width: 18px;
+            height: 18px;
+            display: inline-block;
+            border-radius: 3px;
+            background: var(--accent-red);
+            color: white;
+            font-weight: 700;
+            line-height: 18px;
+            text-align: center;
         }
 
         h1 {
@@ -104,6 +249,7 @@
             text-align: center;
             width: 100%;
             max-width: 320px;
+            border-radius: 0;
         }
 
         .balance small {
@@ -149,6 +295,7 @@
             color: white;
             font-family: 'Minecraft', monospace;
             font-size: 13px;
+            border-radius: 0;
         }
 
         .account {
@@ -163,6 +310,7 @@
             background: rgba(0, 0, 0, 0.18);
             border: 3px solid rgba(255, 255, 255, 0.04);
             cursor: pointer;
+            border-radius: 0;
         }
 
         .account svg {
@@ -181,7 +329,23 @@
     <div class="wrap">
         <div class="card">
 
-            <h1>Server subscription</h1>
+            <!-- Replaced static h1 with profile selector + heading -->
+            <div style="width:100%; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                <h1 style="margin-bottom:6px">Profile</h1>
+
+                <div class="profile-select" id="profileSelect">
+                    <div class="profile-input" id="profileInputBox" role="combobox" aria-haspopup="listbox"
+                        aria-expanded="false">
+                        <input id="profileInput" placeholder="Search or choose profile" aria-label="Profile search"
+                            autocomplete="off">
+                        <div class="arrow" id="profileToggleBtn" title="Open profiles" aria-hidden="false">▾</div>
+                    </div>
+
+                    <div class="dropdown" id="profileDropdown" role="listbox" aria-label="Profiles list">
+                        <!-- profile items will be injected here -->
+                    </div>
+                </div>
+            </div>
 
             <div id="statusButton" class="status-button red" role="button" tabindex="0" aria-pressed="true">
                 <div>
@@ -193,7 +357,7 @@
             <div class="balance">
                 <small>Your Balance</small>
                 <div class="amount" id="userOwe">? DKK</div>
-                <div class="estimate" id="estimatedNext">Next month: ? DKK</div>
+                <div class="estimate" id="estimatedNext">Next month: 0 DKK</div>
             </div>
 
             <div class="controls">
@@ -220,6 +384,192 @@
     </div>
 
     <script>
+        // Profiles initial state
+        const profiles = [
+            { name: 'vanilla', enabled: false },
+            { name: 'lighly modded', enabled: false },
+            { name: 'modded', enabled: true }
+        ];
+
+        let selectedProfile = 'modded'; // default selected profile per requirement
+        let isSearching = false; // true while user is actively typing/searching
+        let suppressRestore = false; // prevent blur from overwriting when selecting
+
+        const input = document.getElementById('profileInput');
+        const dropdown = document.getElementById('profileDropdown');
+        const toggleBtn = document.getElementById('profileToggleBtn');
+        const inputBox = document.getElementById('profileInputBox');
+        const selectWrap = document.getElementById('profileSelect');
+
+        function renderProfiles(filter = '') {
+            dropdown.innerHTML = '';
+            const f = filter.trim().toLowerCase();
+            profiles.forEach((p) => {
+                if (f && !p.name.toLowerCase().includes(f)) return;
+                const item = document.createElement('div');
+                item.className = 'profile-item';
+                if (!p.enabled) item.classList.add('disabled');
+                if (selectedProfile === p.name && p.enabled) item.classList.add('active');
+                item.dataset.name = p.name;
+                item.dataset.enabled = p.enabled ? 'true' : 'false';
+
+                // left: icon + name
+                const left = document.createElement('div');
+                left.className = 'left';
+                const icon = document.createElement('span');
+                icon.className = 'profile-icon';
+                // placeholder for future icon injection
+                left.appendChild(icon);
+                const name = document.createElement('div');
+                name.className = 'profile-name';
+                name.textContent = p.name;
+                left.appendChild(name);
+
+                // right: toggle button
+                const toggle = document.createElement('div');
+                toggle.className = 'toggle-btn';
+                toggle.setAttribute('role', 'button');
+                toggle.setAttribute('aria-label', p.enabled ? 'Disable profile' : 'Enable profile');
+                toggle.dataset.name = p.name;
+                toggle.innerHTML = p.enabled ? '<span class="trash">🗑</span>' : '<span class="plus">+</span>';
+
+                item.appendChild(left);
+                item.appendChild(toggle);
+
+                // click on the item (but not on the toggle)
+                item.addEventListener('click', (ev) => {
+                    if (ev.target.closest('.toggle-btn')) return; // ignore if toggle clicked
+                    if (!p.enabled) return; // disabled profiles cannot be selected
+                    suppressRestore = true;
+                    selectedProfile = p.name;
+                    input.value = p.name;
+                    isSearching = false;
+                    closeDropdown();
+                    renderProfiles(input.value);
+                    setTimeout(() => { suppressRestore = false; }, 120);
+                });
+
+                // toggle enabled state when clicking the right button
+                toggle.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    const name = ev.currentTarget.dataset.name;
+                    const idx = profiles.findIndex(x => x.name === name);
+                    if (idx === -1) return;
+
+                    const willDisable = profiles[idx].enabled === true; // currently enabled -> will disable
+
+                    // Prevent disabling the last enabled profile if it's the selected one
+                    if (willDisable && selectedProfile === name) {
+                        const otherEnabled = profiles.some((q, i) => i !== idx && q.enabled);
+                        if (!otherEnabled) {
+                            // don't allow disabling the last selected/enabled profile
+                            toggle.classList.add('shake');
+                            setTimeout(() => toggle.classList.remove('shake'), 300);
+                            return;
+                        }
+                    }
+
+                    // protect against blur closing the dropdown: we'll refocus the input after toggling
+                    suppressRestore = true;
+
+                    profiles[idx].enabled = !profiles[idx].enabled;
+
+                    // if disabling the currently selected profile, switch to another enabled profile
+                    if (!profiles[idx].enabled && selectedProfile === name) {
+                        const firstEnabled = profiles.find(q => q.enabled);
+                        if (firstEnabled) {
+                            selectedProfile = firstEnabled.name;
+                            input.value = selectedProfile;
+                        }
+                    }
+
+                    renderProfiles(input.value);
+
+                    // keep dropdown open and restore focus so the blur handler doesn't close it
+                    setTimeout(() => {
+                        openDropdown();
+                        input.focus();
+                        // small delay then allow blur to behave normally again
+                        setTimeout(() => { suppressRestore = false; }, 120);
+                    }, 10);
+                });
+
+                dropdown.appendChild(item);
+            });
+        }
+
+        function openDropdown() {
+            dropdown.classList.add('open');
+            inputBox.setAttribute('aria-expanded', 'true');
+            // ensure matching filter is used
+            renderProfiles(input.value || '');
+        }
+
+        function closeDropdown() {
+            dropdown.classList.remove('open');
+            inputBox.setAttribute('aria-expanded', 'false');
+        }
+
+        // Open when clicking the arrow or input
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // behave like focusing the input: clear it and allow typing
+            isSearching = true;
+            input.value = '';
+            // open dropdown (always open after pressing the arrow) and focus the input
+            openDropdown();
+            setTimeout(() => input.focus(), 10);
+        });
+
+        input.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!dropdown.classList.contains('open')) openDropdown();
+        });
+
+        // When focusing the search input: clear it for quick typing but don't change selection yet
+        input.addEventListener('focus', (e) => {
+            isSearching = true;
+            // clear the visible value to allow immediate typing
+            input.value = '';
+            openDropdown();
+        });
+
+        // filtering
+        input.addEventListener('input', (e) => {
+            renderProfiles(e.target.value || '');
+        });
+
+        // blur: restore the displayed value to the current profile (search is temporary)
+        input.addEventListener('blur', (e) => {
+            isSearching = false;
+            // delay restore slightly to allow click handlers (selecting an item / toggles) to run first
+            setTimeout(() => {
+                if (!suppressRestore) {
+                    input.value = selectedProfile || '';
+                }
+                suppressRestore = false;
+            }, 120);
+            // close dropdown after a short delay (unless suppressed)
+            setTimeout(() => { if (!suppressRestore) closeDropdown(); }, 150);
+        });
+
+        // close on outside click
+        document.addEventListener('click', (e) => {
+            if (!selectWrap.contains(e.target)) closeDropdown();
+        });
+
+        // keyboard: escape to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeDropdown();
+        });
+
+        // initialize
+        (function initProfileSelector() {
+            // set initial input to selected profile
+            if (selectedProfile) input.value = selectedProfile;
+            renderProfiles();
+        })();
+
         (async function () {
             const account = await me()
             document.getElementById("userOwe").textContent = `${-1 * account.owe} DKK`;

@@ -1,3 +1,4 @@
 node_modules
-public/minecraft/data/accounts.json
+accounts.json
+profiles
 hashkey

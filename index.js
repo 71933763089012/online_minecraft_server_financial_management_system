@@ -8,7 +8,7 @@ import { hashPassword, verifyPassword } from "./crypto-scrypt.js";
 
 const app = express();
 const PORT = 3000;
-const ACCOUNTS_FILE = path.join(import.meta.dirname, 'public/minecraft/data/accounts.json');
+const ACCOUNTS_FILE = path.join(import.meta.dirname, 'accounts.json');
 
 app.use(cookieParser())
 app.use(express.json())
@@ -26,6 +26,21 @@ async function readAccounts() {
 async function writeAccounts(accounts) {
   // overwrite file with formatted JSON
   await fs.writeFile(ACCOUNTS_FILE, JSON.stringify(accounts, null, 2), 'utf8');
+}
+
+async function readProfile(profileName) {
+  try {
+    const filePath = path.join(import.meta.dirname, `profiles/${profileName}.json`);
+    const txt = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(txt);
+  } catch (err) {
+    return
+  }
+}
+
+async function writeProfile(profileName, profileData) {
+  const filePath = path.join(import.meta.dirname, `profiles/${profileName}.json`);
+  await fs.writeFile(filePath, JSON.stringify(profileData, null, 2), 'utf8');
 }
 
 app.post('/minecraft/signup', async (req, res) => {
@@ -76,10 +91,16 @@ app.post('/minecraft/signup', async (req, res) => {
     if (hasError) {
       res.status(400).json(errorMessages);
     } else {
-      // push array-of-strings as you requested
       const accounts = await readAccounts();
-      const passwordHash = await hashPassword(password)
-      accounts.push({ realname, mcusername, additionalusers: {}, password: passwordHash, phone, owe: 0, max_cost: 10, min_players: 2, status: 'inactive' });
+      const passwordHash = await hashPassword(password);
+      accounts.push({
+        realname,
+        mcusername,
+        additionalusers: {},
+        password: passwordHash,
+        phone,
+        owe: 0
+      });
       await writeAccounts(accounts);
 
       res.cookie('user_id', hash(mcusername), { secure: true, sameSite: 'Strict', httpOnly: true });
@@ -91,6 +112,21 @@ app.post('/minecraft/signup', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
+
+async function addProfile(account, profileName) {
+  try {
+    const profilePath = path.join(import.meta.dirname, `profiles/${profileName}.json`);
+    const txt = await fs.readFile(profilePath, 'utf8');
+    const profile = JSON.parse(txt);
+
+    profile.push({ mcusername: account.mcusername, max_cost: 10, min_players: 3, status: 'inactive', auto: false });
+    await writeProfile(file.substring(0, file.length - 5), profile);
+
+    // res.cookie('profile', profileName, { secure: true, sameSite: 'Strict', httpOnly: true });
+  } catch (err) {
+
+  }
+}
 
 app.post('/minecraft/login', async (req, res) => {
   try {

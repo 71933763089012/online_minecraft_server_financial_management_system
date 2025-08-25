@@ -1,6 +1,6 @@
 async function createAccount() {
     try {
-        const response = await fetch("http://localhost:3000/minecraft/signup", {
+        const response = await fetch("/minecraft/signup", {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
@@ -32,7 +32,7 @@ async function createAccount() {
 
 async function login() {
     try {
-        const response = await fetch("http://localhost:3000/minecraft/login", {
+        const response = await fetch("/minecraft/login", {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
@@ -66,7 +66,7 @@ async function login() {
 
 async function me() {
     try {
-        const response = await fetch("http://localhost:3000/minecraft/me", {
+        const response = await fetch("/minecraft/me", {
             method: "GET",
             headers: { "content-type": "application/json" },
             credentials: 'include'
@@ -90,7 +90,7 @@ async function me() {
 
 async function saveSettings(settings) {
     try {
-        const response = await fetch("http://localhost:3000/minecraft/saveSettings", {
+        const response = await fetch("/minecraft/saveSettings", {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify(settings)
@@ -111,7 +111,7 @@ async function saveSettings(settings) {
 
 async function updateAccount(password, settings) {
     try {
-        const response = await fetch("http://localhost:3000/minecraft/account", {
+        const response = await fetch("/minecraft/account", {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
