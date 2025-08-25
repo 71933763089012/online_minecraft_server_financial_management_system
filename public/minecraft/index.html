@@ -204,6 +204,14 @@
             text-align: center;
         }
 
+        .toggle-btn img.toggle-icon {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            pointer-events: none;
+            /* so clicking works on the parent .toggle-btn */
+        }
+
         h1 {
             margin: 0;
             color: white;
@@ -384,24 +392,15 @@
     </div>
 
     <script>
-        /*
-         * Profile selector implementation
-         * - searchable input (temporary search, restored on blur)
-         * - dropdown with profiles (icons placeholders + toggle buttons)
-         * - clicking toggle (plus/trash) does NOT close the dropdown
-         * - arrow button behaves like focusing the input (clears input and opens dropdown)
-         * - cannot disable the very last enabled profile
-         */
-
         // --- Data: profiles ---
         const profiles = [
-            { name: 'vanilla', enabled: false },
-            { name: 'lighly modded', enabled: false },
-            { name: 'modded', enabled: true }
+            { name: 'Vanilla', enabled: false },
+            { name: 'Lighly modded', enabled: false },
+            { name: 'Modded', enabled: true }
         ];
 
         // Currently selected (active) profile name. Must always be one of the enabled profiles.
-        let selectedProfile = 'modded';
+        let selectedProfile = 'Modded';
 
         // DOM references
         const input = document.getElementById('profileInput');
@@ -432,10 +431,10 @@
                 // Left: icon placeholder + name
                 const left = document.createElement('div');
                 left.className = 'left';
-                // profile icon placeholder
-                const icon = document.createElement('span');
-                icon.className = 'profile-icon';
-                left.appendChild(icon);
+                // // profile icon placeholder
+                // const icon = document.createElement('span');
+                // icon.className = 'profile-icon';
+                // left.appendChild(icon);
                 // profile name
                 const name = document.createElement('div');
                 name.className = 'profile-name';
@@ -448,7 +447,10 @@
                 toggle.setAttribute('role', 'button');
                 toggle.setAttribute('aria-label', p.enabled ? 'Disable profile' : 'Enable profile');
                 toggle.dataset.name = p.name;
-                toggle.innerHTML = p.enabled ? '<span class="trash">🗑</span>' : '<span class="plus">+</span>';
+                // toggle.innerHTML = p.enabled ? '<span class="trash">🗑</span>' : '<span class="plus">+</span>';
+                toggle.innerHTML = p.enabled
+                    ? '<img src="/minecraft/images/Trash button.png" alt="Disable profile" class="toggle-icon">'
+                    : '<img src="/minecraft/images/Plus button.png" alt="Enable profile" class="toggle-icon">';
 
                 item.appendChild(left);
                 item.appendChild(toggle);
