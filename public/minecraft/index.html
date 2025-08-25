@@ -384,48 +384,65 @@
     </div>
 
     <script>
-        // Profiles initial state
+        /*
+         * Profile selector implementation
+         * - searchable input (temporary search, restored on blur)
+         * - dropdown with profiles (icons placeholders + toggle buttons)
+         * - clicking toggle (plus/trash) does NOT close the dropdown
+         * - arrow button behaves like focusing the input (clears input and opens dropdown)
+         * - cannot disable the very last enabled profile
+         */
+
+        // --- Data: profiles ---
         const profiles = [
             { name: 'vanilla', enabled: false },
             { name: 'lighly modded', enabled: false },
             { name: 'modded', enabled: true }
         ];
 
-        let selectedProfile = 'modded'; // default selected profile per requirement
-        let isSearching = false; // true while user is actively typing/searching
-        let suppressRestore = false; // prevent blur from overwriting when selecting
+        // Currently selected (active) profile name. Must always be one of the enabled profiles.
+        let selectedProfile = 'modded';
 
+        // DOM references
         const input = document.getElementById('profileInput');
         const dropdown = document.getElementById('profileDropdown');
         const toggleBtn = document.getElementById('profileToggleBtn');
         const inputBox = document.getElementById('profileInputBox');
         const selectWrap = document.getElementById('profileSelect');
 
+        /**
+         * Render the profile list into the dropdown.
+         * filter: optional string to filter profile names (search behaviour).
+         */
         function renderProfiles(filter = '') {
-            dropdown.innerHTML = '';
-            const f = filter.trim().toLowerCase();
+            dropdown.innerHTML = ''; // clear
+            const q = (filter || '').trim().toLowerCase();
+
             profiles.forEach((p) => {
-                if (f && !p.name.toLowerCase().includes(f)) return;
+                // filtering
+                if (q && !p.name.toLowerCase().includes(q)) return;
+
+                // Build item container
                 const item = document.createElement('div');
                 item.className = 'profile-item';
                 if (!p.enabled) item.classList.add('disabled');
                 if (selectedProfile === p.name && p.enabled) item.classList.add('active');
                 item.dataset.name = p.name;
-                item.dataset.enabled = p.enabled ? 'true' : 'false';
 
-                // left: icon + name
+                // Left: icon placeholder + name
                 const left = document.createElement('div');
                 left.className = 'left';
+                // profile icon placeholder
                 const icon = document.createElement('span');
                 icon.className = 'profile-icon';
-                // placeholder for future icon injection
                 left.appendChild(icon);
+                // profile name
                 const name = document.createElement('div');
                 name.className = 'profile-name';
                 name.textContent = p.name;
                 left.appendChild(name);
 
-                // right: toggle button
+                // Right: toggle enable/disable button
                 const toggle = document.createElement('div');
                 toggle.className = 'toggle-btn';
                 toggle.setAttribute('role', 'button');
@@ -436,137 +453,135 @@
                 item.appendChild(left);
                 item.appendChild(toggle);
 
-                // click on the item (but not on the toggle)
+                // --- Item click: select profile (only if enabled) ---
                 item.addEventListener('click', (ev) => {
-                    if (ev.target.closest('.toggle-btn')) return; // ignore if toggle clicked
-                    if (!p.enabled) return; // disabled profiles cannot be selected
-                    suppressRestore = true;
-                    selectedProfile = p.name;
-                    input.value = p.name;
-                    isSearching = false;
+                    // If toggle was clicked, ignore here
+                    if (ev.target.closest('.toggle-btn')) return;
+                    if (!p.enabled) return; // disabled profiles are not selectable
+
+                    selectedProfile = p.name; // switch selection
+                    input.value = p.name; // reflect immediately
+
+                    // close dropdown as user chose a profile
                     closeDropdown();
+
+                    // re-render to update 'active' states
                     renderProfiles(input.value);
-                    setTimeout(() => { suppressRestore = false; }, 120);
                 });
 
-                // toggle enabled state when clicking the right button
+                // --- Toggle button click: enable/disable profile ---
                 toggle.addEventListener('click', (ev) => {
-                    ev.stopPropagation();
+                    ev.stopPropagation(); // don't let parent item click fire
+
                     const name = ev.currentTarget.dataset.name;
                     const idx = profiles.findIndex(x => x.name === name);
                     if (idx === -1) return;
 
-                    const willDisable = profiles[idx].enabled === true; // currently enabled -> will disable
+                    const currentlyEnabled = profiles[idx].enabled;
 
-                    // Prevent disabling the last enabled profile if it's the selected one
-                    if (willDisable && selectedProfile === name) {
-                        const otherEnabled = profiles.some((q, i) => i !== idx && q.enabled);
-                        if (!otherEnabled) {
-                            // don't allow disabling the last selected/enabled profile
+                    // If disabling, ensure at least one other enabled profile remains
+                    if (currentlyEnabled) {
+                        const othersEnabled = profiles.some((q, i) => i !== idx && q.enabled);
+                        if (!othersEnabled) {
+                            // Visual feedback: briefly shake the toggle (class not defined, but kept for extension)
                             toggle.classList.add('shake');
                             setTimeout(() => toggle.classList.remove('shake'), 300);
-                            return;
+                            return; // disallow disabling last enabled
                         }
                     }
 
-                    // protect against blur closing the dropdown: we'll refocus the input after toggling
-                    suppressRestore = true;
-
+                    // Flip enabled state
                     profiles[idx].enabled = !profiles[idx].enabled;
 
-                    // if disabling the currently selected profile, switch to another enabled profile
+                    // If we just disabled the profile that was selected, pick the first enabled profile
                     if (!profiles[idx].enabled && selectedProfile === name) {
                         const firstEnabled = profiles.find(q => q.enabled);
                         if (firstEnabled) {
                             selectedProfile = firstEnabled.name;
-                            input.value = selectedProfile;
+                            input.value = selectedProfile; // reflect change in input
+                        } else {
+                            // theoretical safety: shouldn't happen because we prevented disabling last
+                            selectedProfile = null;
+                            input.value = '';
                         }
                     }
 
+                    // Re-render to update icons, active/disabled states
                     renderProfiles(input.value);
-
-                    // keep dropdown open and restore focus so the blur handler doesn't close it
-                    setTimeout(() => {
-                        openDropdown();
-                        input.focus();
-                        // small delay then allow blur to behave normally again
-                        setTimeout(() => { suppressRestore = false; }, 120);
-                    }, 10);
                 });
 
                 dropdown.appendChild(item);
             });
         }
 
+        // --- Open / close helpers ---
         function openDropdown() {
             dropdown.classList.add('open');
             inputBox.setAttribute('aria-expanded', 'true');
-            // ensure matching filter is used
             renderProfiles(input.value || '');
         }
 
         function closeDropdown() {
             dropdown.classList.remove('open');
             inputBox.setAttribute('aria-expanded', 'false');
+            // When closing, always restore the input to the selected profile name
+            input.value = selectedProfile || '';
+            input.blur(); // remove focus from the input field
         }
 
-        // Open when clicking the arrow or input
+        // --- Input & toggle button behavior ---
+        // Clicking the arrow behaves like focusing into search: clear the visible text and open dropdown
         toggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            // behave like focusing the input: clear it and allow typing
-            isSearching = true;
             input.value = '';
-            // open dropdown (always open after pressing the arrow) and focus the input
             openDropdown();
+            // Put focus in the input so the user can type right away
             setTimeout(() => input.focus(), 10);
         });
 
-        input.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!dropdown.classList.contains('open')) openDropdown();
-        });
-
-        // When focusing the search input: clear it for quick typing but don't change selection yet
+        // Clicking the input should open and prepare for search; clear what's shown
         input.addEventListener('focus', (e) => {
-            isSearching = true;
-            // clear the visible value to allow immediate typing
+            // Clear the visible text so the user can quickly type (this is temporary)
             input.value = '';
             openDropdown();
         });
 
-        // filtering
+        // Typing filters the list
         input.addEventListener('input', (e) => {
             renderProfiles(e.target.value || '');
         });
 
-        // blur: restore the displayed value to the current profile (search is temporary)
-        input.addEventListener('blur', (e) => {
-            isSearching = false;
-            // delay restore slightly to allow click handlers (selecting an item / toggles) to run first
-            setTimeout(() => {
-                if (!suppressRestore) {
-                    input.value = selectedProfile || '';
-                }
-                suppressRestore = false;
-            }, 120);
-            // close dropdown after a short delay (unless suppressed)
-            setTimeout(() => { if (!suppressRestore) closeDropdown(); }, 150);
-        });
+        // // ChatGPT added this, but it just seems to cause issues with toggles and make UX worse, I've kept it for future reference
+        // input.addEventListener('blur', (e) => {
+        //     // Small timeout to allow clicks inside the dropdown to be handled first
+        //     setTimeout(() => {
+        //         if (!suppressRestore) {
+        //             input.value = selectedProfile || '';
+        //         }
+        //         // allow toggles to re-enable blur logic after their work
+        //         suppressRestore = false;
+        //     }, 120);
 
-        // close on outside click
+        //     // Close the dropdown shortly after unless some other handler has suppressed it
+        //     setTimeout(() => {
+        //         if (!suppressRestore) closeDropdown();
+        //     }, 150);
+        // });
+
+        // Close dropdown when clicking outside the selector
         document.addEventListener('click', (e) => {
             if (!selectWrap.contains(e.target)) closeDropdown();
         });
 
-        // keyboard: escape to close
+        // Keyboard: escape to close
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeDropdown();
         });
 
-        // initialize
+        // initialize selector on page load
         (function initProfileSelector() {
-            // set initial input to selected profile
-            if (selectedProfile) input.value = selectedProfile;
+            // ensure selectedProfile is visible in the input initially
+            input.value = selectedProfile;
             renderProfiles();
         })();
 
