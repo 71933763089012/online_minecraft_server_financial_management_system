@@ -183,6 +183,25 @@ app.get('/minecraft/me', async (req, res) => {
   res.json(account);
 });
 
+app.get('/minecraft/profile', async (req, res) => {
+  const mcusername = req.cookies.mcusername;
+  if (!mcusername) {
+    return res.status(401).send('Unauthorized');
+  }
+
+  const profileName = req.cookies.selectedProfile;
+  const profile = await readProfile(profileName);
+  const account = profile.find(acc => acc.mcusername === mcusername);
+  if (!account) {
+    return res.status(404).send('Account not found');
+  }
+  if (req.cookies.user_id !== hash(account.mcusername)) {
+    return res.status(403).send('Forbidden');
+  }
+
+  res.json(account);
+});
+
 const illigalKeys = ['owe', 'admin', 'free', 'additionalusers']
 app.post('/minecraft/saveSettings', async (req, res) => {
   try {

@@ -88,6 +88,30 @@ async function me() {
     }
 }
 
+async function profile() {
+    alert("test")
+    try {
+        const response = await fetch("/minecraft/profile", {
+            method: "GET",
+            headers: { "content-type": "application/json" },
+            credentials: 'include',
+        });
+        if (!response.ok) {
+            if (response.status === 403) {
+                window.location.href = '/minecraft/login';
+            } else if (response.status === 401 || response.status === 404) {
+                window.location.href = '/minecraft/signup';
+            } else {
+                alert("Error");
+            }
+            return;
+        }
+        return await response.json();
+    } catch (e) {
+        alert("Error: " + e);
+    }
+}
+
 async function saveSettings(settings) {
     try {
         const response = await fetch("/minecraft/saveSettings", {
