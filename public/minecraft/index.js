@@ -89,7 +89,6 @@ async function me() {
 }
 
 async function profile() {
-    alert("test")
     try {
         const response = await fetch("/minecraft/profile", {
             method: "GET",

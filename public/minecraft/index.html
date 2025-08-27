@@ -383,8 +383,7 @@
 
     <script>
         (async function () {
-            const profile = await profile()
-            alert("Success!")
+            const profileData = await profile()
             const account = await me()
             document.getElementById("userOwe").textContent = `${-1 * account.owe} DKK`;
             if (await account.owe > 0) {
@@ -392,9 +391,12 @@
             } else {
                 document.getElementById("userOwe").style.color = "var(--accent-green)";
             }
-            document.getElementById("maxCost").value = profile.max_cost;
-            document.getElementById("minPlayers").value = profile.min_players;
-        })();
+            document.getElementById("maxCost").value = profileData.max_cost;
+            document.getElementById("minPlayers").value = profileData.min_players;
+        })().catch(err => {
+            alert("Error loading profile: " + err.message);
+            console.error(err);
+        });
 
         function debounce(fn, delay) {
             let timer;
