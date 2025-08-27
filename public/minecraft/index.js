@@ -143,13 +143,12 @@ async function updateAccount(password, settings) {
         });
         if (!response.ok) {
             if (response.status === 400) {
-
+                return await response.text();
             } else {
                 alert("Error");
             }
-            return false;
         }
-        return true;
+        return
     } catch (e) {
         alert("Error: " + e);
     }

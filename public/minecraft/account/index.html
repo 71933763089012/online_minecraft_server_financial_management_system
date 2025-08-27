@@ -227,6 +227,34 @@
         body.modal-open {
             overflow: hidden;
         }
+
+        /* Inline error message (same behavior as your signup page) */
+        .error-message {
+            color: #ff4d4d;
+            font-size: 14px;
+            display: block;
+            text-align: left;
+            margin-top: 6px;
+            max-width: 100%;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.25s ease, opacity 0.25s ease;
+        }
+
+        .error-message.show {
+            max-height: 6em;
+            opacity: 1;
+        }
+
+        /* modal-level error (centered) */
+        #modalError {
+            text-align: center;
+            margin-bottom: 10px;
+        }
     </style>
 
     <script src="../index.js"></script>
@@ -278,14 +306,20 @@
     <div class="overlay" id="overlay" aria-hidden="true" role="dialog" aria-modal="true">
         <div class="modal" role="document">
             <div class="modal-title" id="modalTitle">Change your …</div>
-            <form id="modalForm" autocomplete="off">
+
+            <!-- modal-level error -->
+            <div id="modalError" class="error-message" aria-live="assertive"></div>
+
+            <form id="modalForm" autocomplete="off" onsubmit="return false;">
                 <div class="field">
                     <label id="primaryLabel" for="primaryInput">Label</label>
                     <input id="primaryInput" type="text" placeholder="" />
+                    <div id="primaryError" class="error-message" aria-live="polite"></div>
                 </div>
                 <div class="field">
                     <label for="passwordInput">Current Password</label>
                     <input id="passwordInput" type="password" placeholder="Current Password" />
+                    <div id="passwordError" class="error-message" aria-live="polite"></div>
                 </div>
 
                 <div class="modal-actions">
@@ -325,6 +359,9 @@
         const doneBtn = document.getElementById('doneBtn');
         const changePasswordBtn = document.getElementById('changePasswordBtn');
 
+        const primaryErrorEl = document.getElementById('primaryError');
+        const passwordErrorEl = document.getElementById('passwordError');
+
         let currentField = null; // track what is being edited
 
         function openModal(param) {
@@ -335,6 +372,7 @@
             primaryInput.placeholder = param;
             primaryInput.value = '';
             document.getElementById('passwordInput').value = '';
+            clearAllErrors();
             overlay.classList.add('active');
             overlay.setAttribute('aria-hidden', 'false');
             document.body.classList.add('modal-open');
@@ -345,6 +383,7 @@
             overlay.classList.remove('active');
             overlay.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('modal-open');
+            clearAllErrors();
         }
 
         document.querySelectorAll('.btn-edit').forEach(btn => {
@@ -356,8 +395,6 @@
                     const param = titleEl ? titleEl.textContent.trim() : 'Field';
                     openModal(param);
                 });
-            } else if (label === 'add') {
-
             }
         });
 
@@ -365,12 +402,48 @@
         changePasswordBtn.addEventListener('click', () => openModal('Password'));
 
         cancelBtn.addEventListener('click', closeModal);
+
+        // Helpers for showing/clearing errors
+        function setError(el, message) {
+            if (!el) return;
+            el.textContent = message;
+            el.classList.add('show');
+        }
+        function clearError(el) {
+            if (!el) return;
+            el.textContent = '';
+            el.classList.remove('show');
+        }
+        function clearAllErrors() {
+            clearError(primaryErrorEl);
+            clearError(passwordErrorEl);
+        }
+
+        // Clear related errors when user types
+        primaryInput.addEventListener('input', () => {
+            clearError(primaryErrorEl);
+        });
+        document.getElementById('passwordInput').addEventListener('input', () => {
+            clearError(passwordErrorEl);
+        });
+
         doneBtn.addEventListener('click', async () => {
             const password = document.getElementById('passwordInput').value.trim();
             const newValue = primaryInput.value.trim();
 
+            clearAllErrors();
+
+            // Password must always be filled out (client-side only)
             if (!password) {
-                alert("Please enter your current password.");
+                setError(passwordErrorEl, "This should be filled out");
+                document.getElementById('passwordInput').focus();
+                return;
+            }
+
+            // If editing something other than password, primary input must be filled
+            if (currentField !== "password" && !newValue) {
+                setError(primaryErrorEl, "This should be filled out");
+                primaryInput.focus();
                 return;
             }
 
@@ -382,19 +455,25 @@
             else if (currentField === "password") settings.password = newValue;
 
             try {
-                const succes = await updateAccount(password, settings);
-                if (succes) {
+                const message = await updateAccount(password, settings);
+                if (message) {
+                    // Simplified: all server messages go under the primary input (consistent with signup)
+                    setError(primaryErrorEl, message);
+                    primaryInput.focus();
+                } else {
+                    // success: update values in the UI
                     if (settings.realname) document.getElementById("name").textContent = settings.realname;
                     if (settings.phone) document.getElementById("phone").textContent = settings.phone;
                     if (settings.mcusername) document.getElementById("username").textContent = settings.mcusername;
                     if (settings.additionalusers) document.getElementById("additionalusers").textContent = settings.additionalusers;
+                    closeModal();
                 }
             } catch (err) {
                 console.error(err);
-                alert("Failed to update account.");
+                // fallback: show under primary input
+                setError(primaryErrorEl, "Failed to update account.");
+                primaryInput.focus();
             }
-
-            closeModal();
         });
 
         // ESC to close
@@ -404,6 +483,7 @@
             }
         });
     </script>
+
 
 </body>
 

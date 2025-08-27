@@ -45,49 +45,19 @@ async function writeProfile(profileName, profileData) {
 
 app.post('/minecraft/signup', async (req, res) => {
   try {
-    const { realname = '', mcusername = '', password = '', phone = '' } = req.body;
-
     let hasError = false;
     let errorMessages = { realname: '', mcusername: '', password: '', phone: '' };
-
-    if (realname === '') {
-      errorMessages.realname = 'This should be filled out';
-      hasError = true;
-    }
-    if (mcusername === '') {
-      errorMessages.mcusername = 'This should be filled out';
-      hasError = true;
-    } else {
-      const accounts = await readAccounts();
-      if (accounts.some(account => account.mcusername === mcusername)) {
-        errorMessages.mcusername = 'This account already exists';
+    let body = { realname: req.body.realname || '', mcusername: req.body.mcusername || '', password: req.body.password || '', phone: req.body.phone || '' }
+    for (const [key, value] of Object.entries(body)) {
+      if (illigalKeys.includes(key)) return res.status(403).send("Forbidden");
+      const validation = await validateAccountSetting(key, value);
+      if (validation !== true) {
         hasError = true;
-      }
-    }
-    if (password === '') {
-      errorMessages.password = 'This should be filled out';
-      hasError = true;
-    } else if (password.length < 8) {
-      errorMessages.password = 'Must be at least 8 charectors'
-      hasError = true;
-    } else if (password === password.toLowerCase()) {
-      errorMessages.password = 'Must contain at least 1 uppercase letter'
-      hasError = true;
-    } else if (password === password.toUpperCase()) {
-      errorMessages.password = 'Must contain at least 1 lowercase letter'
-      hasError = true;
-    } else if (!/\d/.test(password)) {
-      errorMessages.password = 'Must contain at least 1 number'
-      hasError = true;
-    }
-    if (phone === '') {
-      errorMessages.phone = 'This should be filled out';
-      hasError = true;
-    } else if (!/^\d{8}$/.test(phone)) {
-      errorMessages.phone = "This doesn't look like a phone number";
-      hasError = true;
+        errorMessages[key] = validation;
+      } else if (key == 'mcusername') updateUserID(res, value);
     }
 
+    const { realname = '', mcusername = '', password = '', phone = '' } = body;
     if (hasError) {
       res.status(400).json(errorMessages);
     } else {
@@ -103,8 +73,7 @@ app.post('/minecraft/signup', async (req, res) => {
       });
       await writeAccounts(accounts);
 
-      res.cookie('user_id', hash(mcusername), { secure: true, sameSite: 'Strict', httpOnly: true });
-      res.cookie('mcusername', mcusername, { secure: true, sameSite: 'Strict', httpOnly: true });
+      updateUserID(res, mcusername);
       res.status(200).send('Account created successfully');
     }
   } catch (err) {
@@ -139,8 +108,7 @@ app.post('/minecraft/login', async (req, res) => {
     } else {
       const account = (await readAccounts()).find(account => account.mcusername === mcusername);
       if (account && await verifyPassword(password, account.password)) {
-        res.cookie('user_id', hash(mcusername), { secure: true, sameSite: 'Strict', httpOnly: true });
-        res.cookie('mcusername', mcusername, { secure: true, sameSite: 'Strict', httpOnly: true });
+        updateUserID(res, mcusername);
         res.status(200).send('Login successful');
         return;
       } else {
@@ -191,7 +159,6 @@ app.get('/minecraft/profile', async (req, res) => {
 
   const profileName = req.cookies.selectedProfile;
   const profile = await readProfile(profileName);
-  console.log(profile)
   const account = profile.find(acc => acc.mcusername === mcusername);
   if (!account) {
     return res.status(404).send('Account not found');
@@ -268,7 +235,14 @@ app.post('/minecraft/account', async (req, res) => {
       for (const [key, value] of Object.entries(settings)) {
         if (key in account) {
           if (illigalKeys.includes(key)) return res.status(403).send("Forbidden");
-          account[key] = value;
+          const validation = await validateAccountSetting(key, value);
+          if (validation !== true) return res.status(400).send(validation);
+          if (key == 'password') {
+            account.password = await hashPassword(value);
+          } else {
+            account[key] = value;
+            if (key == 'mcusername') updateUserID(res, value);
+          }
         } else {
           return res.status(400).send(`Invalid setting: ${key}`);
         }
@@ -283,6 +257,46 @@ app.post('/minecraft/account', async (req, res) => {
     res.status(500).send("Internal server error");
   }
 });
+
+let validMcusernames = []
+let invalidMcusernames = []
+async function validateAccountSetting(key, value) {
+  if (value === '') return 'This should be filled out';
+
+  if (key == 'mcusername') {
+    if (invalidMcusernames.includes(value)) return 'This Minecraft username does not exist';
+
+    const accounts = await readAccounts();
+    if (accounts.some(account => account.mcusername === value)) return 'This account already exists';
+
+    if (!validMcusernames.includes(value)) {
+      const res = await fetch(`https://api.mojang.com/users/profiles/minecraft/${value}`);
+      if (res.status === 404) {
+        invalidMcusernames.push(value);
+        return 'This Minecraft username does not exist'
+      }
+      validMcusernames.push(value);
+    }
+  }
+
+  if (key == 'password') {
+    if (value.length < 8) return 'Must be at least 8 charectors';
+    if (value === value.toLowerCase()) return 'Must contain at least 1 uppercase letter';
+    if (value === value.toUpperCase()) return 'Must contain at least 1 lowercase letter';
+    if (!/\d/.test(value)) return 'Must contain at least 1 number';
+  }
+
+  if (key == 'phone') {
+    if (!/^\d{8}$/.test(value)) return "This doesn't look like a phone number";
+  }
+
+  return true;
+}
+
+function updateUserID(res, mcusername) {
+  res.cookie('user_id', hash(mcusername), { secure: true, sameSite: 'Strict', httpOnly: true });
+  res.cookie('mcusername', mcusername, { secure: true, sameSite: 'Strict', httpOnly: true });
+}
 
 // Optional: serve your static HTML from the same server
 app.use('/', express.static(path.join(import.meta.dirname, 'public'))); // put your HTML in ./public
