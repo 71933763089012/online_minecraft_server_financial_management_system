@@ -191,6 +191,7 @@ app.get('/minecraft/profile', async (req, res) => {
 
   const profileName = req.cookies.selectedProfile;
   const profile = await readProfile(profileName);
+  console.log(profile)
   const account = profile.find(acc => acc.mcusername === mcusername);
   if (!account) {
     return res.status(404).send('Account not found');
@@ -210,29 +211,28 @@ app.post('/minecraft/saveSettings', async (req, res) => {
       return res.status(401).send("Unauthorized");
     }
 
-    const accounts = await readAccounts();
-    const accountIndex = accounts.findIndex(acc => acc.mcusername === mcusername);
+    const profileName = req.cookies.selectedProfile;
+    const profile = await readProfile(profileName);
+    const accountIndex = profile.findIndex(acc => acc.mcusername === mcusername);
     if (accountIndex === -1) {
-      return res.status(404).send("Account not found");
+      return res.status(404).send('Account not found');
     }
-
-    const account = accounts[accountIndex];
+    const account = profile[accountIndex];
     if (req.cookies.user_id !== hash(account.mcusername)) {
       return res.status(403).send("Forbidden");
     }
 
     // Only update keys that exist on the account object
     for (const [key, value] of Object.entries(req.body)) {
-      if (key in account) {
+      if (key in profile[accountIndex]) {
         if (illigalKeys.includes(key)) return res.status(403).send("Forbidden");
-        account[key] = value;
+        profile[accountIndex][key] = value;
       } else {
         return res.status(400).send(`Invalid setting: ${key}`);
       }
     }
 
-    accounts[accountIndex] = account;
-    await writeAccounts(accounts);
+    await writeProfile(profileName, profile);
     res.status(200).send("Settings updated successfully");
   } catch (err) {
     console.error("Error updating settings:", err);
