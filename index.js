@@ -258,6 +258,22 @@ app.post('/minecraft/account', async (req, res) => {
   }
 });
 
+app.get('/minecraft/avatar', (req, res) => {
+  const username = req.cookies.mcusername;
+
+  if (!username) {
+    // Fallback to your generic icon
+    return res.redirect(302, `/assets/account.svg`);
+  }
+
+  // Minotar renders by username; simple & fast
+  const url = `https://minotar.net/avatar/${encodeURIComponent(username)}/${64}`;
+
+  // Cache a bit to reduce hits
+  res.set('Cache-Control', 'public, max-age=300');
+  return res.redirect(302, url);
+});
+
 let validMcusernames = []
 let invalidMcusernames = []
 async function validateAccountSetting(key, value) {

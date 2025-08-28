@@ -309,10 +309,12 @@
             border-radius: 0;
         }
 
-        .account svg {
-            width: 22px;
-            height: 22px;
-            fill: white;
+        .account img.mc-face {
+            width: 32px;
+            height: 32px;
+            /* pixelated keeps the Minecraft vibe */
+            image-rendering: pixelated;
+            display: block;
         }
     </style>
 
@@ -370,10 +372,7 @@
 
             <div class="account" title="Account" role="link" onclick="location.href='/minecraft/account'"
                 aria-label="Account">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                        d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.9V22h19.2v-2.7c0-3.3-6.4-4.9-9.6-4.9z" />
-                </svg>
+                <img class="mc-face" src="/minecraft/avatar" alt="Minecraft Account" />
             </div>
 
         </div>
