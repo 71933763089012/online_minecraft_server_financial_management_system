@@ -2,7 +2,7 @@
 import crypto from 'crypto';
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import fs from 'fs/promises'; // use promises API for better async/await support
+import fs, { mkdir } from 'fs/promises'; // use promises API for better async/await support
 import path from 'path';
 import { hashPassword, verifyPassword } from "./crypto-scrypt.js";
 
@@ -43,6 +43,7 @@ async function readProfile(profileName) {
 }
 
 async function writeProfile(profileName, profileData) {
+  await mkdir(path.join(import.meta.dirname, 'data/profiles'), { recursive: true });
   const filePath = path.join(import.meta.dirname, `data/profiles/${profileName}.json`);
   await fs.writeFile(filePath, JSON.stringify(profileData, null, 2), 'utf8');
 }
