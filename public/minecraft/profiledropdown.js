@@ -87,7 +87,7 @@ function renderProfiles(filter = '') {
 
             selectedProfile = p.name; // switch selection
             input.value = p.name; // reflect immediately
-            await updateInputFields(selectedProfile);
+            await updateProfileFields(selectedProfile);
 
             // close dropdown as user chose a profile
             closeDropdown();
@@ -131,7 +131,7 @@ function renderProfiles(filter = '') {
                     selectedProfile = null;
                     input.value = '';
                 }
-                await updateInputFields(selectedProfile);
+                await updateProfileFields(selectedProfile);
             }
 
             // Re-render to update icons, active/disabled states
@@ -158,7 +158,7 @@ function closeDropdown() {
 }
 
 let unsavedChanges = false;
-async function updateInputFields(newProfile) {
+async function updateProfileFields(newProfile) {
     if (unsavedChanges) {
         console.log("saved to profile: ", document.cookie)
         await saveSettings({
@@ -172,6 +172,7 @@ async function updateInputFields(newProfile) {
     const profileData = await profile()
     document.getElementById("maxCost").value = profileData.max_cost;
     document.getElementById("minPlayers").value = profileData.min_players;
+    document.getElementById("statusLabel").textContent = profileData.access ? "ACTIVE" : "INACTIVE";
 }
 
 // --- Input & toggle button behavior ---

@@ -383,7 +383,6 @@
 
     <script>
         (async function () {
-            await updateInputFields(getCookie("selectedProfile"));
             const account = await me()
             document.getElementById("userOwe").textContent = `${-1 * account.owe} DKK`;
             if (await account.owe > 0) {
@@ -391,6 +390,18 @@
             } else {
                 document.getElementById("userOwe").style.color = "var(--accent-green)";
             }
+
+            if (account.activeProfiles) {
+                for (const p of profiles) {
+                    if (account.activeProfiles.includes(p.name)) {
+                        p.enabled = true;
+                    } else {
+                        p.enabled = false;
+                    }
+                }
+            }
+
+            await updateProfileFields(getCookie("selectedProfile"));
         })().catch(err => {
             alert("Error loading profile: " + err.message);
             console.error(err);
