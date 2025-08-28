@@ -268,7 +268,16 @@ app.post('/minecraft/account', async (req, res) => {
             account.password = await hashPassword(value);
           } else {
             account[key] = value;
-            if (key == 'mcusername') updateUserID(res, value);
+            if (key == 'mcusername') {
+              updateUserID(res, value);
+              // Update mcusername in all profiles
+              for (const profileName of availableProfiles) {
+                const profile = await readProfile(profileName);
+                const accountIndex = profile.findIndex(acc => acc.mcusername === mcusername);
+                if (accountIndex !== -1) profile[accountIndex].mcusername = value;
+                await writeProfile(profileName, profile);
+              }
+            }
           }
         } else {
           return res.status(400).send(`Invalid setting: ${key}`);
