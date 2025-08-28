@@ -295,13 +295,15 @@ app.post('/minecraft/account', async (req, res) => {
 });
 
 app.get('/minecraft/avatar', (req, res) => {
-  // Minotar renders by username; simple & fast
-  const url = `https://minotar.net/avatar/${encodeURIComponent(req.cookies.mcusername)}/8`;
+  const username = req.query.u || req.cookies.mcusername; // allow both
+  if (!username) return res.status(400).send("No username provided");
 
-  // Cache a bit to reduce hits
+  const url = `https://minotar.net/avatar/${encodeURIComponent(username)}/8`;
+
   res.set('Cache-Control', 'public, max-age=300');
   return res.redirect(302, url);
 });
+
 
 let validMcusernames = []
 let invalidMcusernames = []

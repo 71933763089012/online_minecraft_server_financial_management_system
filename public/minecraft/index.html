@@ -381,8 +381,11 @@
     <script src="./profiledropdown.js"></script>
 
     <script>
+        let avatarUrl = "/minecraft/avatar";
         (async function () {
             const account = await me()
+            avatarUrl += "?u=" + encodeURIComponent(account.mcusername);
+            document.querySelector(".mc-face").src = avatarUrl;
             document.getElementById("userOwe").textContent = `${-1 * account.owe} DKK`;
             if (await account.owe > 0) {
                 document.getElementById("userOwe").style.color = "var(--accent-red)";
