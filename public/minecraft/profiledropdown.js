@@ -80,14 +80,14 @@ function renderProfiles(filter = '') {
         item.appendChild(toggle);
 
         // --- Item click: select profile (only if enabled) ---
-        item.addEventListener('click', (ev) => {
+        item.addEventListener('click', async (ev) => {
             // If toggle was clicked, ignore here
             if (ev.target.closest('.toggle-btn')) return;
             if (!p.enabled) return; // disabled profiles are not selectable
 
             selectedProfile = p.name; // switch selection
-            setCookie("selectedProfile", selectedProfile);
             input.value = p.name; // reflect immediately
+            await updateInputFields(selectedProfile);
 
             // close dropdown as user chose a profile
             closeDropdown();
@@ -97,7 +97,7 @@ function renderProfiles(filter = '') {
         });
 
         // --- Toggle button click: enable/disable profile ---
-        toggle.addEventListener('click', (ev) => {
+        toggle.addEventListener('click', async (ev) => {
             ev.stopPropagation(); // don't let parent item click fire
 
             const name = ev.currentTarget.dataset.name;
@@ -131,7 +131,7 @@ function renderProfiles(filter = '') {
                     selectedProfile = null;
                     input.value = '';
                 }
-                setCookie("selectedProfile", selectedProfile);
+                await updateInputFields(selectedProfile);
             }
 
             // Re-render to update icons, active/disabled states
@@ -157,6 +157,23 @@ function closeDropdown() {
     input.blur(); // remove focus from the input field
 }
 
+let unsavedChanges = false;
+async function updateInputFields(newProfile) {
+    if (unsavedChanges) {
+        console.log("saved to profile: ", document.cookie)
+        await saveSettings({
+            max_cost: document.getElementById("maxCost").value,
+            min_players: document.getElementById("minPlayers").value
+        });
+        unsavedChanges = false;
+    }
+    setCookie("selectedProfile", newProfile);
+    console.log("loaded profile: ", document.cookie)
+    const profileData = await profile()
+    document.getElementById("maxCost").value = profileData.max_cost;
+    document.getElementById("minPlayers").value = profileData.min_players;
+}
+
 // --- Input & toggle button behavior ---
 // Clicking the arrow behaves like focusing into search: clear the visible text and open dropdown
 toggleBtn.addEventListener('click', (e) => {
@@ -178,23 +195,6 @@ input.addEventListener('focus', (e) => {
 input.addEventListener('input', (e) => {
     renderProfiles(e.target.value || '');
 });
-
-// // ChatGPT added this, but it just seems to cause issues with toggles and make UX worse, I've kept it for future reference
-// input.addEventListener('blur', (e) => {
-//     // Small timeout to allow clicks inside the dropdown to be handled first
-//     setTimeout(() => {
-//         if (!suppressRestore) {
-//             input.value = selectedProfile || '';
-//         }
-//         // allow toggles to re-enable blur logic after their work
-//         suppressRestore = false;
-//     }, 120);
-
-//     // Close the dropdown shortly after unless some other handler has suppressed it
-//     setTimeout(() => {
-//         if (!suppressRestore) closeDropdown();
-//     }, 150);
-// });
 
 // Close dropdown when clicking outside the selector
 document.addEventListener('click', (e) => {

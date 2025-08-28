@@ -383,7 +383,7 @@
 
     <script>
         (async function () {
-            const profileData = await profile()
+            await updateInputFields(getCookie("selectedProfile"));
             const account = await me()
             document.getElementById("userOwe").textContent = `${-1 * account.owe} DKK`;
             if (await account.owe > 0) {
@@ -391,8 +391,6 @@
             } else {
                 document.getElementById("userOwe").style.color = "var(--accent-green)";
             }
-            document.getElementById("maxCost").value = profileData.max_cost;
-            document.getElementById("minPlayers").value = profileData.min_players;
         })().catch(err => {
             alert("Error loading profile: " + err.message);
             console.error(err);
@@ -407,15 +405,19 @@
         }
 
         const saveFrequency = 5000; // 5 seconds
-        const debouncedSave = debounce(() => {
-            saveSettings({
+        const debouncedSave = debounce(async () => {
+            await saveSettings({
                 max_cost: document.getElementById("maxCost").value,
                 min_players: document.getElementById("minPlayers").value
             });
+            unsavedChanges = false;
         }, saveFrequency);
 
         document.querySelectorAll(".controls input").forEach(input => {
-            input.addEventListener("input", debouncedSave);
+            input.addEventListener("input", () => {
+                unsavedChanges = true;
+                debouncedSave();
+            });
         });
     </script>
 
