@@ -71,10 +71,9 @@ function renderProfiles(filter = '') {
         toggle.setAttribute('role', 'button');
         toggle.setAttribute('aria-label', p.enabled ? 'Disable profile' : 'Enable profile');
         toggle.dataset.name = p.name;
-        // toggle.innerHTML = p.enabled ? '<span class="trash">🗑</span>' : '<span class="plus">+</span>';
         toggle.innerHTML = p.enabled
-            ? '<img src="/minecraft/images/Trash button.png" alt="Disable profile" class="toggle-icon">'
-            : '<img src="/minecraft/images/Plus button.png" alt="Enable profile" class="toggle-icon">';
+            ? '<img src="/minecraft/images/Trash-button.png" alt="Disable profile" class="toggle-icon">'
+            : '<img src="/minecraft/images/Plus-button.png" alt="Enable profile" class="toggle-icon">';
 
         item.appendChild(left);
         item.appendChild(toggle);

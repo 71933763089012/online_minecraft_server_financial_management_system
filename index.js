@@ -8,7 +8,7 @@ import { hashPassword, verifyPassword } from "./crypto-scrypt.js";
 
 const app = express();
 const PORT = 3000;
-const ACCOUNTS_FILE = path.join(import.meta.dirname, 'accounts.json');
+const ACCOUNTS_FILE = path.join(import.meta.dirname, 'data/accounts.json');
 
 app.use(cookieParser())
 app.use(express.json())
@@ -30,7 +30,7 @@ async function writeAccounts(accounts) {
 
 async function readProfile(profileName) {
   try {
-    const filePath = path.join(import.meta.dirname, `profiles/${profileName}.json`);
+    const filePath = path.join(import.meta.dirname, `data/profiles/${profileName}.json`);
     const txt = await fs.readFile(filePath, 'utf8');
     return JSON.parse(txt);
   } catch (err) {
@@ -39,7 +39,7 @@ async function readProfile(profileName) {
 }
 
 async function writeProfile(profileName, profileData) {
-  const filePath = path.join(import.meta.dirname, `profiles/${profileName}.json`);
+  const filePath = path.join(import.meta.dirname, `data/profiles/${profileName}.json`);
   await fs.writeFile(filePath, JSON.stringify(profileData, null, 2), 'utf8');
 }
 
@@ -84,7 +84,7 @@ app.post('/minecraft/signup', async (req, res) => {
 
 async function addProfile(account, profileName) {
   try {
-    const profilePath = path.join(import.meta.dirname, `profiles/${profileName}.json`);
+    const profilePath = path.join(import.meta.dirname, `data/profiles/${profileName}.json`);
     const txt = await fs.readFile(profilePath, 'utf8');
     const profile = JSON.parse(txt);
 
