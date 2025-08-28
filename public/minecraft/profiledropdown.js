@@ -16,12 +16,7 @@ function getCookie(name) {
     return null;
 }
 
-// --- Data: profiles ---
-const profiles = [
-    { name: 'Vanilla', enabled: false },
-    { name: 'Lighly modded', enabled: false },
-    { name: 'Modded', enabled: true }
-];
+const profiles = [];
 
 // Currently selected (active) profile name. Must always be one of the enabled profiles.
 let selectedProfile = getCookie("selectedProfile") || "Modded";
@@ -55,10 +50,6 @@ function renderProfiles(filter = '') {
         // Left: icon placeholder + name
         const left = document.createElement('div');
         left.className = 'left';
-        // // profile icon placeholder
-        // const icon = document.createElement('span');
-        // icon.className = 'profile-icon';
-        // left.appendChild(icon);
         // profile name
         const name = document.createElement('div');
         name.className = 'profile-name';
@@ -159,7 +150,6 @@ function closeDropdown() {
 let unsavedChanges = false;
 async function updateProfileFields(newProfile) {
     if (unsavedChanges) {
-        console.log("saved to profile: ", document.cookie)
         await saveSettings({
             max_cost: document.getElementById("maxCost").value,
             min_players: document.getElementById("minPlayers").value
@@ -167,7 +157,6 @@ async function updateProfileFields(newProfile) {
         unsavedChanges = false;
     }
     setCookie("selectedProfile", newProfile);
-    console.log("loaded profile: ", document.cookie)
     const profileData = await profile()
     document.getElementById("maxCost").value = profileData.max_cost;
     document.getElementById("minPlayers").value = profileData.min_players;

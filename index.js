@@ -8,7 +8,7 @@ import { hashPassword, verifyPassword } from "./crypto-scrypt.js";
 
 const app = express();
 const PORT = 3000;
-const ACCOUNTS_FILE = path.join(import.meta.dirname, 'data/accounts.json');
+const ACCOUNTS_FILE = path.join(import.meta.dirname, '/data/accounts.json');
 
 app.use(cookieParser())
 app.use(express.json())
@@ -28,19 +28,36 @@ async function writeAccounts(accounts) {
   await fs.writeFile(ACCOUNTS_FILE, JSON.stringify(accounts, null, 2), 'utf8');
 }
 
+const availableProfiles = ['Vanilla', 'Lighly modded', 'Modded']
+app.post('/minecraft/availableProfiles', async (req, res) => { return res.json(availableProfiles); })
+
 async function readProfile(profileName) {
   try {
     const filePath = path.join(import.meta.dirname, `data/profiles/${profileName}.json`);
     const txt = await fs.readFile(filePath, 'utf8');
     return JSON.parse(txt);
   } catch (err) {
-    return
+    if (err.code === 'ENOENT' && availableProfiles.includes(profileName)) return []; // file not found -> start empty list
+    throw err;
   }
 }
 
 async function writeProfile(profileName, profileData) {
   const filePath = path.join(import.meta.dirname, `data/profiles/${profileName}.json`);
   await fs.writeFile(filePath, JSON.stringify(profileData, null, 2), 'utf8');
+}
+
+async function addProfile(mcusername, profileName) {
+  try {
+    const baseProfile = { mcusername, max_cost: 10, min_players: 3, status: 'inactive', auto: false };
+    const profile = await readProfile(profileName);
+    profile.push(baseProfile);
+    await writeProfile(profileName, profile);
+    return baseProfile;
+  } catch (err) {
+    console.error('Error adding profi:', err);
+    throw err;
+  }
 }
 
 app.post('/minecraft/signup', async (req, res) => {
@@ -82,21 +99,6 @@ app.post('/minecraft/signup', async (req, res) => {
   }
 });
 
-async function addProfile(account, profileName) {
-  try {
-    const profilePath = path.join(import.meta.dirname, `data/profiles/${profileName}.json`);
-    const txt = await fs.readFile(profilePath, 'utf8');
-    const profile = JSON.parse(txt);
-
-    profile.push({ mcusername: account.mcusername, max_cost: 10, min_players: 3, status: 'inactive', auto: false });
-    await writeProfile(file.substring(0, file.length - 5), profile);
-
-    // res.cookie('profile', profileName, { secure: true, sameSite: 'Strict', httpOnly: true });
-  } catch (err) {
-
-  }
-}
-
 app.post('/minecraft/login', async (req, res) => {
   try {
     const { mcusername = '', password = '' } = req.body;
@@ -134,9 +136,7 @@ app.post('/minecraft/login', async (req, res) => {
 
 app.get('/minecraft/me', async (req, res) => {
   const mcusername = req.cookies.mcusername;
-  if (!mcusername) {
-    return res.status(401).send('Unauthorized');
-  }
+  if (!mcusername) return res.status(401).send('Unauthorized');
 
   const accounts = await readAccounts();
   const account = accounts.find(acc => acc.mcusername === mcusername);
@@ -153,21 +153,16 @@ app.get('/minecraft/me', async (req, res) => {
 
 app.get('/minecraft/profile', async (req, res) => {
   const mcusername = req.cookies.mcusername;
-  if (!mcusername) {
-    return res.status(401).send('Unauthorized');
-  }
-
   const profileName = req.cookies.selectedProfile;
+  if (!mcusername) return res.status(401).send('Unauthorized');
+  if (req.cookies.user_id !== hash(mcusername)) return res.status(403).send('Invalid User ID');
+  if (!availableProfiles.includes(profileName)) return res.status(403).send('Profile not available');
+
   const profile = await readProfile(profileName);
   const account = profile.find(acc => acc.mcusername === mcusername);
-  if (!account) {
-    return res.status(404).send('Account not found');
-  }
-  if (req.cookies.user_id !== hash(account.mcusername)) {
-    return res.status(403).send('Forbidden');
-  }
+  if (!account) return res.json(await addProfile(mcusername, profileName));
 
-  res.json(account);
+  return res.json(account);
 });
 
 const illigalKeys = ['owe', 'admin', 'free', 'additionalusers']
@@ -179,15 +174,12 @@ app.post('/minecraft/saveSettings', async (req, res) => {
     }
 
     const profileName = req.cookies.selectedProfile;
+    if (!availableProfiles.includes(profileName)) return res.status(403).send('Profile not available');
     const profile = await readProfile(profileName);
     const accountIndex = profile.findIndex(acc => acc.mcusername === mcusername);
-    if (accountIndex === -1) {
-      return res.status(404).send('Account not found');
-    }
+    if (accountIndex === -1) return res.status(404).send('Account not found');
     const account = profile[accountIndex];
-    if (req.cookies.user_id !== hash(account.mcusername)) {
-      return res.status(403).send("Forbidden");
-    }
+    if (req.cookies.user_id !== hash(account.mcusername)) return res.status(403).send("Forbidden");
 
     // Only update keys that exist on the account object
     for (const [key, value] of Object.entries(req.body)) {

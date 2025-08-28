@@ -389,13 +389,14 @@
             } else {
                 document.getElementById("userOwe").style.color = "var(--accent-green)";
             }
-
+            const response = await fetch("/minecraft/availableProfiles", { method: "POST" })
+            const availableProfiles = await response.json()
             if (account.activeProfiles) {
-                for (const p of profiles) {
-                    if (account.activeProfiles.includes(p.name)) {
-                        p.enabled = true;
+                for (const name of availableProfiles) {
+                    if (account.activeProfiles.includes(name)) {
+                        profiles.push({ name, enabled: true });
                     } else {
-                        p.enabled = false;
+                        profiles.push({ name, enabled: false });
                     }
                 }
             }
