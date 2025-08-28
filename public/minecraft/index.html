@@ -401,6 +401,7 @@
                 }
             }
 
+            if (!account.activeProfiles.includes(getCookie("selectedProfile"))) setCookie("selectedProfile", account.activeProfiles[0]);
             await updateProfileFields(getCookie("selectedProfile"));
         })().catch(err => {
             alert("Error loading profile: " + err.message);

@@ -83,14 +83,16 @@ app.post('/minecraft/signup', async (req, res) => {
       accounts.push({
         realname,
         mcusername,
-        additionalusers: {},
+        additionalusers: [],
         password: passwordHash,
         phone,
-        owe: 0
+        owe: 0,
+        activeProfiles: ["Modded"]
       });
       await writeAccounts(accounts);
 
       updateUserID(res, mcusername);
+      res.cookie('selectedProfile', "Modded", { secure: true, sameSite: 'Strict' });
       res.status(200).send('Account created successfully');
     }
   } catch (err) {
