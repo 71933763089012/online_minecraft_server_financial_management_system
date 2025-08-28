@@ -136,6 +136,16 @@ app.post('/minecraft/login', async (req, res) => {
   }
 })
 
+app.post("/minecraft/logout", (req, res) => {
+  if (req.cookies) {
+    Object.keys(req.cookies).forEach(name => {
+      res.clearCookie(name, { path: "/" });
+    });
+  }
+  res.redirect("/minecraft/login");
+});
+
+
 app.get('/minecraft/me', async (req, res) => {
   const mcusername = req.cookies.mcusername;
   if (!mcusername) return res.status(401).send('Unauthorized');

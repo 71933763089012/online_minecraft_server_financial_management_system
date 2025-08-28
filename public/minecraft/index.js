@@ -171,13 +171,9 @@ async function saveActiveProfiles(profiles) {
 }
 
 function logout() {
-    // Remove all cookies visible to JS
-    document.cookie.split(";").forEach(c => {
-        document.cookie = c.trim().split("=")[0] +
-            "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/";
+    fetch("/minecraft/logout", { method: "POST" }).then(() => {
+        window.location.href = "/minecraft/login";
     })
-
-    window.location.href = "/minecraft/login";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
