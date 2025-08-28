@@ -256,7 +256,7 @@ app.post('/minecraft/account', async (req, res) => {
     const { password, settings } = req.body;
     if (!password) return res.status(400).send("Password is required");
 
-    if (await verifyPassword(account.password, password)) return res.status(403).send("Forbidden");
+    if (!await verifyPassword(password, account.password)) return res.status(403).send("Incorrect password");
 
     if (settings) {
       // Only update keys that exist on the account object

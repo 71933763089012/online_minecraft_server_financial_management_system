@@ -144,7 +144,10 @@ async function updateAccount(password, settings) {
         if (!response.ok) {
             if (response.status === 400) {
                 return await response.text();
-            } else {
+            } else if (response.status === 403 && await response.text() === "Incorrect password") {
+                return "Incorrect password";
+            }
+            else {
                 alert("Error");
             }
         }
