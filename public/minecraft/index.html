@@ -415,12 +415,13 @@
             };
         }
 
-        const saveFrequency = 5000; // 5 seconds
+        const saveFrequency = 2000; // 2 seconds
         const debouncedSave = debounce(async () => {
             await saveSettings({
                 max_cost: document.getElementById("maxCost").value,
                 min_players: document.getElementById("minPlayers").value
             });
+            await saveActiveProfiles(profiles.filter(p => p.enabled).map(p => p.name));
             unsavedChanges = false;
         }, saveFrequency);
 

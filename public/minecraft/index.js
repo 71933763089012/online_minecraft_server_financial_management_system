@@ -154,6 +154,22 @@ async function updateAccount(password, settings) {
     }
 }
 
+async function saveActiveProfiles(profiles) {
+    try {
+        const response = await fetch("/minecraft/saveActiveProfiles", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(profiles)
+        });
+        if (!response.ok) {
+            alert("Error");
+        }
+        return
+    } catch (e) {
+        alert("Error: " + e);
+    }
+}
+
 function logout() {
     // Remove all cookies visible to JS
     document.cookie.split(";").forEach(c => {

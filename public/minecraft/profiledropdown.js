@@ -109,6 +109,9 @@ function renderProfiles(filter = '') {
 
             // Flip enabled state
             profiles[idx].enabled = !profiles[idx].enabled;
+            // Signal to save settings
+            unsavedChanges = true;
+            debouncedSave();
 
             // If we just disabled the profile that was selected, pick the first enabled profile
             if (!profiles[idx].enabled && selectedProfile === name) {

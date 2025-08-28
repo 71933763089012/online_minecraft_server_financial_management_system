@@ -199,6 +199,34 @@ app.post('/minecraft/saveSettings', async (req, res) => {
   }
 });
 
+app.post('/minecraft/saveActiveProfiles', async (req, res) => {
+  try {
+    const mcusername = req.cookies.mcusername;
+    if (!mcusername) {
+      return res.status(401).send("Unauthorized");
+    }
+    const accounts = await readAccounts();
+    const accountIndex = accounts.findIndex(acc => acc.mcusername === mcusername);
+    if (accountIndex === -1) return res.status(404).send("Account not found");
+
+    const account = accounts[accountIndex];
+    if (req.cookies.user_id !== hash(account.mcusername)) return res.status(403).send("Forbidden");
+
+    const activeProfiles = req.body;
+    for (const profileName of activeProfiles) {
+      if (!availableProfiles.includes(profileName)) return res.status(403).send(`${profileName} not available`);
+    }
+    account.activeProfiles = activeProfiles;
+    accounts[accountIndex] = account;
+    await writeAccounts(accounts);
+
+    res.status(200).send("Settings updated successfully");
+  } catch (err) {
+    console.error("Error updating settings:", err);
+    res.status(500).send("Internal server error");
+  }
+});
+
 app.post('/minecraft/account', async (req, res) => {
   try {
     const mcusername = req.cookies.mcusername;
@@ -207,20 +235,15 @@ app.post('/minecraft/account', async (req, res) => {
     }
     const accounts = await readAccounts();
     const accountIndex = accounts.findIndex(acc => acc.mcusername === mcusername);
-    if (accountIndex === -1) {
-      return res.status(404).send("Account not found");
-    }
+    if (accountIndex === -1) return res.status(404).send("Account not found");
+
     const account = accounts[accountIndex];
-    if (req.cookies.user_id !== hash(account.mcusername)) {
-      return res.status(403).send("Forbidden");
-    }
+    if (req.cookies.user_id !== hash(account.mcusername)) return res.status(403).send("Forbidden");
+
     const { password, settings } = req.body;
-    if (!password) {
-      return res.status(400).send("Password is required");
-    }
-    if (await verifyPassword(account.password, password)) {
-      return res.status(403).send("Forbidden");
-    }
+    if (!password) return res.status(400).send("Password is required");
+
+    if (await verifyPassword(account.password, password)) return res.status(403).send("Forbidden");
 
     if (settings) {
       // Only update keys that exist on the account object
@@ -251,15 +274,8 @@ app.post('/minecraft/account', async (req, res) => {
 });
 
 app.get('/minecraft/avatar', (req, res) => {
-  const username = req.cookies.mcusername;
-
-  if (!username) {
-    // Fallback to your generic icon
-    return res.redirect(302, `/assets/account.svg`);
-  }
-
   // Minotar renders by username; simple & fast
-  const url = `https://minotar.net/avatar/${encodeURIComponent(username)}/${64}`;
+  const url = `https://minotar.net/avatar/${encodeURIComponent(req.cookies.mcusername)}/8`;
 
   // Cache a bit to reduce hits
   res.set('Cache-Control', 'public, max-age=300');
