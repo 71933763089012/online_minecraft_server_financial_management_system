@@ -312,6 +312,7 @@ async function validateAccountSetting(key, value) {
   if (value === '') return 'This should be filled out';
 
   if (key == 'mcusername') {
+    if (!/^[A-Za-z0-9_]{1,16}$/.test(value)) return 'Invalid Minecraft username';
     if (invalidMcusernames.includes(value)) return 'This Minecraft username does not exist';
 
     const accounts = await readAccounts();
@@ -319,7 +320,7 @@ async function validateAccountSetting(key, value) {
 
     if (!validMcusernames.includes(value)) {
       const res = await fetch(`https://api.mojang.com/users/profiles/minecraft/${value}`);
-      if (res.status === 404) {
+      if (!res.ok) {
         invalidMcusernames.push(value);
         return 'This Minecraft username does not exist'
       }
