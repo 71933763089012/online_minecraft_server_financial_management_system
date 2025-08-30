@@ -64,6 +64,12 @@ async function login() {
     }
 }
 
+function logout() {
+    fetch("/minecraft/logout", { method: "POST" }).then(() => {
+        window.location.href = "/minecraft/login";
+    })
+}
+
 async function me() {
     try {
         const response = await fetch("/minecraft/me", {
@@ -173,10 +179,23 @@ async function saveActiveProfiles(profiles) {
     }
 }
 
-function logout() {
-    fetch("/minecraft/logout", { method: "POST" }).then(() => {
-        window.location.href = "/minecraft/login";
-    })
+async function getAdmin() {
+    try {
+        const response = await fetch("/minecraft/AdminTools", {
+            method: "GET",
+            headers: { "content-type": "application/json" },
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            window.location.href = '/minecraft';
+            return;
+        }
+        return await response.json();
+
+    } catch (e) {
+        alert("Error: " + e);
+    }
+    return true;
 }
 
 document.addEventListener("DOMContentLoaded", () => {

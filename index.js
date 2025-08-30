@@ -9,9 +9,25 @@ import { hashPassword, verifyPassword } from "./crypto-scrypt.js";
 const app = express();
 const PORT = 3000;
 const ACCOUNTS_FILE = path.join(import.meta.dirname, '/data/accounts.json');
+const ADMIN_FILE = path.join(import.meta.dirname, '/data/admintools.json');
 
 app.use(cookieParser())
 app.use(express.json())
+
+async function getAdmin() {
+  try {
+    const txt = await fs.readFile(ADMIN_FILE, 'utf8');
+    return JSON.parse(txt);
+  } catch (err) {
+    if (err.code === 'ENOENT') return []; // file not found -> start empty list
+    throw err;
+  }
+}
+
+async function updateAdmin(tools) {
+  // overwrite file with formatted JSON
+  await fs.writeFile(ADMIN_FILE, JSON.stringify(tools, null, 2), 'utf8');
+}
 
 async function readAccounts() {
   try {
@@ -19,7 +35,7 @@ async function readAccounts() {
     return JSON.parse(txt);
   } catch (err) {
     if (err.code === 'ENOENT') return []; // file not found -> start empty list
-    throw err; // other error -> crash so we notice
+    throw err;
   }
 }
 
@@ -351,7 +367,7 @@ function updateUserID(res, mcusername) {
 app.use('/', express.static(path.join(import.meta.dirname, 'public'))); // put your HTML in ./public
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port: ${PORT}`);
 });
 
 const hashkey = await fs.readFile('./hashkey')
@@ -359,3 +375,43 @@ const hashkey = await fs.readFile('./hashkey')
 function hash(input) {
   return crypto.createHmac('sha256', hashkey).update(input).digest('hex');
 }
+
+//Admin Tools functions
+const adminUsers = ['5hk_'];
+app.get('/minecraft/AdminTools', async (req, res) => {
+  const mcusername = req.cookies.mcusername;
+  if (!mcusername) return res.status(401).send('Unauthorized');
+  if (!adminUsers.includes(mcusername)) return res.status(403).send('Forbidden');
+  if (req.cookies.user_id !== hash(mcusername)) return res.status(403).send('Forbidden');
+
+  res.status(200);
+  return res.json(await getAdmin());
+});
+
+app.post('/minecraft/admin/resetPassword', async (req, res) => {
+  try {
+    const mcusername = req.cookies.mcusername;
+    const password = req.body.newPassword;
+    let account = req.body.mcusername;
+
+    if (!mcusername) return res.status(401).send('Unauthorized');
+    if (!adminUsers.includes(mcusername)) return res.status(403).send('Forbidden');
+    if (req.cookies.user_id !== hash(mcusername)) return res.status(403).send('Forbidden');
+
+    const accounts = await readAccounts();
+    const accountIndex = accounts.findIndex(acc => acc.mcusername === account);
+    if (accountIndex === -1) return res.status(404).send("Account not found");
+    account = accounts[accountIndex];
+
+    const validation = await validateAccountSetting("password", password);
+    if (validation !== true) return res.status(400).send(validation);
+    account.password = await hashPassword(password);
+
+    accounts[accountIndex] = account;
+    await writeAccounts(accounts);
+    return res.status(200).send("Success");
+  } catch (err) {
+    console.error("Error updating Account:", err);
+    res.status(500).send("Internal server error");
+  }
+});

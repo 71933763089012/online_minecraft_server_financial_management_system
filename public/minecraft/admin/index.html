@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin Tools</title>
+    <link rel="icon" href="/minecraft/favicon.ico" type="image/x-icon">
+
+    <style>
+        /* --- Minecraft theme variables (from your reference) --- */
+        @font-face {
+            font-family: 'Minecraft';
+            src: url('/minecraft/fonts/Minecraft-Font.ttf') format('truetype');
+        }
+
+        :root {
+            --bg: #3c6e71;
+            --panel: #222;
+            --panel-2: #333;
+            --border: #555;
+            --border-strong: #888;
+            --text: #fff;
+            --text-dim: #ddd;
+            --btn: #444;
+            --btn-hover: #666;
+            --btn-primary: #2d8a34;
+            --btn-primary-hover: #3da544;
+            --overlay: rgba(0, 0, 0, 0.6);
+            --input-bg: #111;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: 'Minecraft', monospace;
+            color: var(--text);
+            background: var(--bg)
+        }
+
+        /* Centered fixed rectangle that never grows or shrinks (has internal scrolling) */
+        .admin-shell {
+            width: min(1200px, 95vw);
+            height: 75vh;
+            /* intentionally fixed */
+            margin: 4vh auto;
+            background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+            border: 4px solid var(--border);
+            padding: 18px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            font-size: 28px;
+            margin: 0;
+            padding-bottom: 6px;
+            border-bottom: 3px solid var(--border-strong);
+        }
+
+        /* Scrollable area for cards */
+        .tools-area {
+            flex: 1 1 auto;
+            /* fill remaining inside fixed rectangle */
+            overflow: auto;
+            padding: 12px;
+            margin-top: 6px;
+            border-top: 0;
+        }
+
+        /* Grid of tool cards - responsive and future-proof */
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            align-items: start;
+        }
+
+        /* Each tool card is a square-ish flexible card that fits content and keeps submit at bottom */
+        .tool-card {
+            background: var(--panel-2);
+            border: 3px solid var(--border);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 220px;
+            /* gives card a square feel */
+            max-height: 100%;
+        }
+
+        .tool-title {
+            text-align: center;
+            font-size: 18px;
+            margin: 2px 0 10px 0;
+        }
+
+        .tool-body {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 13px
+        }
+
+        input,
+        select,
+        textarea {
+            background: var(--input-bg);
+            color: var(--text);
+            border: 3px solid var(--border);
+            padding: 8px;
+            font-family: 'Minecraft';
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+        }
+
+        .spacer {
+            flex: 1 1 auto
+        }
+
+        /* pushes submit to bottom */
+
+        .submit-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 8px 12px;
+            font-family: 'Minecraft';
+            font-size: 16px;
+            border: 3px solid var(--border-strong);
+            background: var(--btn);
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background: var(--btn-hover);
+        }
+
+        /* Inline status/message under a card */
+        .card-message {
+            font-size: 13px;
+            margin-top: 8px;
+            color: var(--text-dim);
+            min-height: 1.2em
+        }
+
+        .card-message.error {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+
+        /* Custom confirm modal (built from scratch) */
+        .confirm-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: var(--overlay);
+            z-index: 2000
+        }
+
+        .confirm-overlay.active {
+            display: flex
+        }
+
+        .confirm-modal {
+            width: clamp(280px, 46vw, 560px);
+            background: var(--panel);
+            border: 4px solid var(--border);
+            padding: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        .confirm-title {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 8px
+        }
+
+        .confirm-body {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: 3px solid var(--border-strong);
+            background: var(--btn);
+            color: var(--text);
+            cursor: pointer;
+            font-family: 'Minecraft';
+        }
+
+        .btn.primary {
+            background: var(--btn-primary);
+            border-color: var(--btn-primary-hover)
+        }
+
+        /* If not admin show a message */
+        .not-admin {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px
+        }
+
+        /* Simple responsive tweaks */
+        @media (max-width:640px) {
+            .admin-shell {
+                height: 80vh
+            }
+        }
+    </style>
+
+    <script src="../index.js"></script>
+    <script src="adminTools.js"></script>
+
+</head>
+
+<body>
+
+    <div id="root"></div>
+
+    <script>
+        // --- Simple admin page generator -------------------------------------------------
+        // Usage:
+        // 1) ensure your site exposes isAdmin() which returns true/false (as you said)
+        // 2) provide an async getAdmin() function in ../index.js that returns the array of tools
+        //    (this allows you to control which tools and inputs exist server-side)
+        // 3) define global async functions in ../index.js matching each tool.action name
+        //    e.g. async function newPassword(params) { /* ... */ }
+
+
+        (async function () {
+            // Tools registry placeholder. The real tool list should come from your getAdmin() in index.js
+            let tools = [
+                { name: 'Loading…', inputs: [], action: 'noop' }
+            ];
+
+            const root = document.getElementById('root');
+
+            // show a temporary loading state while checking admin
+            root.innerHTML = `<div class=admin-shell><header>Admin Tools</header><div class=tools-area style="display:flex;align-items:center;justify-content:center;color:var(--text-dim)">Checking permissions…</div></div>`;
+            await renderPage()
+
+            async function renderPage() {
+                // getAdmin() must be provided by ../index.js and return an array of tools
+                try {
+                    if (typeof getAdmin === 'function') tools = await Promise.resolve(getAdmin());
+                    else tools = tools || [];
+                } catch (e) {
+                    console.error('getAdmin failed', e);
+                    tools = [];
+                }
+
+                // If no tools or user isn't admin, show not-authorized (assumes getAdmin returns [] when not admin)
+                if (!tools || tools.length === 0) {
+                    root.innerHTML = `
+        <div class="admin-shell">
+          <header>Admin Tools</header>
+          <div class="tools-area">
+            <div class="not-admin">You are not authorized to view this page or no tools are configured.</div>
+          </div>
+        </div>
+      `; return;
+                }
+
+                // Build UI when admin
+                const shell = document.createElement('div'); shell.className = 'admin-shell';
+                shell.innerHTML = `<header>Admin Tools</header>`;
+                const toolsArea = document.createElement('div'); toolsArea.className = 'tools-area';
+                const grid = document.createElement('div'); grid.className = 'tool-grid';
+
+                tools.forEach((tool, idx) => {
+                    const card = document.createElement('div'); card.className = 'tool-card';
+
+                    const title = document.createElement('div'); title.className = 'tool-title'; title.textContent = tool.name;
+                    card.appendChild(title);
+
+                    const body = document.createElement('div'); body.className = 'tool-body';
+
+                    // create inputs
+                    const inputEls = {};
+                    (tool.inputs || []).forEach(inp => {
+                        const fieldWrap = document.createElement('div');
+                        const label = document.createElement('label'); label.textContent = inp.label || inp.key;
+                        fieldWrap.appendChild(label);
+                        let el;
+                        if (inp.type === 'textarea') el = document.createElement('textarea');
+                        else if (inp.type === 'select') {
+                            el = document.createElement('select'); (inp.options || []).forEach(o => {
+                                const opt = document.createElement('option'); opt.value = o.value; opt.textContent = o.label; el.appendChild(opt);
+                            })
+                        } else { el = document.createElement('input'); el.type = inp.type || 'text' }
+                        el.placeholder = inp.placeholder || '';
+                        el.dataset.key = inp.key;
+                        el.addEventListener('input', () => { // clear card message on change
+                            const msg = card.querySelector('.card-message'); if (msg) msg.textContent = '';
+                        })
+                        fieldWrap.appendChild(el);
+                        body.appendChild(fieldWrap);
+                        inputEls[inp.key] = el;
+                    });
+
+                    // push spacer so submit stays bottom
+                    const spacer = document.createElement('div'); spacer.className = 'spacer'; card.appendChild(body); card.appendChild(spacer);
+
+                    // submit
+                    const submit = document.createElement('button'); submit.className = 'submit-btn'; submit.textContent = 'Submit';
+                    submit.addEventListener('click', () => onSubmit(tool, inputEls, card));
+                    card.appendChild(submit);
+
+                    // message area
+                    const msg = document.createElement('div'); msg.className = 'card-message'; card.appendChild(msg);
+
+                    grid.appendChild(card);
+                });
+
+                toolsArea.appendChild(grid); shell.appendChild(toolsArea); root.innerHTML = ''; root.appendChild(shell);
+
+                // Add confirmation overlay to document body
+                addConfirmModal();
+            }
+
+            // --- Confirmation modal implementation (custom) ---
+            let currentConfirm = null; // {tool, inputs, card, values}
+            function addConfirmModal() {
+                const overlay = document.createElement('div'); overlay.className = 'confirm-overlay'; overlay.id = 'confirmOverlay';
+                overlay.innerHTML = `
+      <div class="confirm-modal" role="dialog" aria-modal="true">
+        <div class="confirm-title">Are you sure?</div>
+        <div class="confirm-body" id="confirmBody">This action is irreversible. Please confirm.</div>
+        <div class="confirm-actions">
+          <button class="btn" id="confirmCancel">Cancel</button>
+          <button class="btn primary" id="confirmYes">I'm sure</button>
+        </div>
+      </div>
+    `;
+                document.body.appendChild(overlay);
+
+                overlay.querySelector('#confirmCancel').addEventListener('click', () => { overlay.classList.remove('active'); currentConfirm = null });
+                overlay.querySelector('#confirmYes').addEventListener('click', async () => {
+                    overlay.classList.remove('active');
+                    if (!currentConfirm) return;
+                    const { tool, values, card } = currentConfirm;
+                    currentConfirm = null;
+                    await executeAction(tool, values, card);
+                });
+            }
+
+            async function onSubmit(tool, inputEls, card) {
+                // collect values
+                const values = {};
+                for (const k in inputEls) values[k] = inputEls[k].value;
+
+                // basic client-side required check (you can extend)
+                for (const k in values) { if (!String(values[k] || '').trim()) { const msg = card.querySelector('.card-message'); msg.textContent = `Please fill out ${k}`; return; } }
+
+                // show custom confirm with tool info
+                const overlay = document.getElementById('confirmOverlay');
+                const body = overlay.querySelector('#confirmBody');
+                const paramList = Object.entries(values).map(([k, v]) => `<div><strong>${k}:</strong> ${escapeHtml(String(v).slice(0, 200))}</div>`).join('');
+                body.innerHTML = `<div style="margin-bottom:8px">You are about to run <strong>${escapeHtml(tool.name)}</strong> with the following inputs:</div>${paramList}<div style="margin-top:8px;color:var(--text-dim);font-size:13px">Confirm to proceed.</div>`;
+                currentConfirm = { tool, values, card };
+                overlay.classList.add('active');
+            }
+
+            // Execute action by calling a global function defined in ../index.js
+            async function executeAction(tool, values, card) {
+                const msgEl = card.querySelector('.card-message');
+                msgEl.textContent = 'Running…';
+                msgEl.classList.remove('error'); // reset
+
+                try {
+                    const fn = (typeof window[tool.action] === 'function') ? window[tool.action] : null;
+
+                    let result;
+                    if (typeof fn === 'function') {
+                        result = await fn(Object.assign({}, values));
+                    } else {
+                        console.warn('No global function found for', tool.action);
+                        result = { ok: false, message: 'Missing function "' + tool.action + '"' };
+                    }
+
+                    if (result && !result.ok) {
+                        msgEl.classList.add('error');
+                        msgEl.textContent = result.message || 'Failed.';
+                    } else {
+                        msgEl.classList.remove('error');
+                        msgEl.textContent = result && result.message ? result.message : 'Success.';
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    msgEl.textContent = 'Error: ' + (err && err.message ? err.message : String(err));
+                    msgEl.classList.add('error'); // error = red
+                }
+            }
+
+
+            // small helper
+            function escapeHtml(str) { return String(str).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s])) }
+
+            // Expose a small helper to add tools dynamically if you want
+            window.adminUI = { addTool(t) { tools.push(t); renderPage(); } };
+
+        })();
+    </script>
+
+</body>
+
+</html>
