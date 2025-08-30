@@ -370,7 +370,7 @@ app.listen(PORT, () => {
   console.log(`Server running on port: ${PORT}`);
 });
 
-const hashkey = await fs.readFile('./hashkey')
+const hashkey = await fs.readFile('./data/hashkey')
 
 function hash(input) {
   return crypto.createHmac('sha256', hashkey).update(input).digest('hex');
