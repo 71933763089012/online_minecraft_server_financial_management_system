@@ -388,6 +388,48 @@ app.get('/minecraft/AdminTools', async (req, res) => {
   return res.json(await getAdmin());
 });
 
+app.post('/minecraft/admin/addTool', async (req, res) => {
+  try {
+    const mcusername = req.cookies.mcusername;
+
+    if (!mcusername) return res.status(401).send('Unauthorized');
+    if (!adminUsers.includes(mcusername)) return res.status(403).send('Forbidden');
+    if (req.cookies.user_id !== hash(mcusername)) return res.status(403).send('Forbidden');
+
+    const tool = req.body;
+    const tools = await getAdmin();
+    tools.push(tool);
+    updateAdmin(tools);
+
+    return res.status(200).send("Added Tool")
+  } catch (err) {
+    console.error("Error adding admin tool:", err);
+    res.status(500).send("Internal server error");
+  }
+});
+
+app.post('/minecraft/admin/removeTool', async (req, res) => {
+  try {
+    const mcusername = req.cookies.mcusername;
+
+    if (!mcusername) return res.status(401).send('Unauthorized');
+    if (!adminUsers.includes(mcusername)) return res.status(403).send('Forbidden');
+    if (req.cookies.user_id !== hash(mcusername)) return res.status(403).send('Forbidden');
+
+    const tool = req.body;
+    const tools = await getAdmin();
+    const toolIndex = tools.indexOf(tool)
+    if (toolIndex == -1) return res.status(404).send("Missing Admin Tool");
+    tools.splice(toolIndex, 1)
+    updateAdmin(tools);
+
+    return res.status(200).send("Added Tool")
+  } catch (err) {
+    console.error("Error adding admin tool:", err);
+    res.status(500).send("Internal server error");
+  }
+});
+
 app.post('/minecraft/admin/resetPassword', async (req, res) => {
   try {
     const mcusername = req.cookies.mcusername;
