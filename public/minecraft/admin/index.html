@@ -26,13 +26,7 @@
     <div id="confirm-overlay" style="display: none;">
         <div id="confirm-card">
             <div class="confirm-title">Are you sure?</div>
-            <div class="confirm-body">
-                <div style="margin-bottom: 8px;">You are about to run <strong>Reset Password</strong> with the following
-                    inputs:</div>
-                <div><strong>mcusername:</strong> 5hk_</div>
-                <div><strong>newPassword:</strong> 'h4cPmTGA+VAVa7</div>
-                <div style="margin-top:8px;">Confirm to proceed</div>
-            </div>
+            <div class="confirm-body"></div>
             <div class="confirm-actions">
                 <button id="confirmNo">Cancel</button>
                 <button id="confirmYes">Confirm</button>
@@ -49,7 +43,6 @@
     <script src="adminTools.js"></script>
     <script async>
         (async () => {
-            console.log("fetching tools");
             const tools = await getAdmin();
             tools.forEach(tool => { addUITool(tool) });
         })()

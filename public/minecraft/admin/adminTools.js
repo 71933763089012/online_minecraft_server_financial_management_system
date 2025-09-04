@@ -3,11 +3,7 @@ const ElConfirmOverlay = document.getElementById('confirm-overlay');
 function showConfirmOverlay() { ElConfirmOverlay.style.display = 'flex' }
 function hideConfirmOverlay() { ElConfirmOverlay.style.display = 'none' }
 
-//temp cancel button click event
-const ElConfirmOverlayCancel = document.getElementById('confirmNo');
-ElConfirmOverlayCancel.addEventListener('click', function () { hideConfirmOverlay() });
-
-//temp cancel button click event
+//temp add tool button click event
 const ElAddTool = document.getElementById('add-tool');
 ElAddTool.addEventListener('click', function () {
     addUITool({
@@ -93,8 +89,8 @@ function addUITool(tool) {
 
 // --- Activate Confirm for Submit ---
 let currentConfirm;
+let confirmType;
 function onSubmit(tool, inputEls, card) {
-    console.log("Submit")
     const values = {};
     for (const k in inputEls) values[k] = inputEls[k].value;
     // basic required-field check: each field must be non-empty
@@ -103,8 +99,48 @@ function onSubmit(tool, inputEls, card) {
     // show a short list of inputs (escaped) so user can confirm sensitive actions
     const paramList = Object.entries(values).map(([k, v]) => `<div><strong>${escapeHtml(k)}:</strong> ${escapeHtml(String(v).slice(0, 200))}</div>`).join('');
     body.innerHTML = `<div style="margin-bottom:8px">You are about to run <strong>${escapeHtml(tool.name)}</strong> with the following inputs:</div>${paramList}<div style="margin-top:8px;color:var(--text-dim);font-size:13px">Confirm to proceed.</div>`;
-    currentConfirm = { tool, values, card };
+    currentConfirm = { tool, values, card }; confirmType = "Submit";
     showConfirmOverlay();
+}
+
+const ElConfirmOverlayCancel = document.getElementById('confirmNo');
+ElConfirmOverlayCancel.addEventListener('click', function () {
+    hideConfirmOverlay();
+    currentConfirm = null;
+});
+
+const ElConfirmOverlayConfirm = document.getElementById('confirmYes');
+ElConfirmOverlayConfirm.addEventListener('click', function () {
+    switch (confirmType) {
+        case "Submit":
+            executeAction(currentConfirm)
+            break;
+        case "RemoveTool":
+
+            break;
+        default:
+            alert(`ERROR : Invalid confirmType "${confirmType}"`)
+    }
+    hideConfirmOverlay()
+});
+
+// executeAction: attempts to call a global function by tool.action with provided values
+async function executeAction({ tool, values, card }) {
+    const msgEl = card.querySelector('.card-message');
+    msgEl.textContent = 'Running…'; msgEl.classList.remove('error');
+    try {
+        // Resolve the function from the global window using the action string
+        const fn = (typeof window[tool.action] === 'function') ? window[tool.action] : null;
+        let result;
+        if (typeof fn === 'function') result = await fn(Object.assign({}, values));
+        else result = { ok: false, message: 'Missing function "' + tool.action + '"' };
+        // interpret standard result shape { ok: boolean, message?: string }
+        if (result && !result.ok) { msgEl.classList.add('error'); msgEl.textContent = result.message || 'Failed.'; }
+        else { msgEl.textContent = result && result.message ? result.message : 'Success.'; }
+    } catch (err) {
+        // catch runtime errors from the action function and show to user
+        console.error(err); msgEl.textContent = 'Error: ' + (err && err.message ? err.message : String(err)); msgEl.classList.add('error');
+    }
 }
 
 // --- HTML Formating ---
