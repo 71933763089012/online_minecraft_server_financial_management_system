@@ -418,7 +418,9 @@ app.post('/minecraft/admin/removeTool', async (req, res) => {
 
     const tool = req.body;
     const tools = await getAdmin();
-    const toolIndex = tools.indexOf(tool)
+    const toolIndex = tools.findIndex(t => deepEqual(t, tool));
+    console.log(tool);
+    console.log(tools);
     if (toolIndex == -1) return res.status(404).send("Missing Admin Tool");
     tools.splice(toolIndex, 1)
     updateAdmin(tools);
@@ -429,6 +431,43 @@ app.post('/minecraft/admin/removeTool', async (req, res) => {
     res.status(500).send("Internal server error");
   }
 });
+
+function deepEqual(obj1, obj2) {
+  // Check if both are the same reference
+  if (obj1 === obj2) return true;
+  // Check if either is null/undefined
+  if (obj1 == null || obj2 == null) return false;
+  // Check if types are different
+  if (typeof obj1 !== typeof obj2) return false;
+  // Handle primitive types
+  if (typeof obj1 !== 'object') return obj1 == obj2;
+
+  // Handle arrays
+  if (Array.isArray(obj1) !== Array.isArray(obj2)) return false;
+
+  if (Array.isArray(obj1)) {
+    if (obj1.length !== obj2.length) return false;
+    for (let i = 0; i < obj1.length; i++) {
+      if (!deepEqual(obj1[i], obj2[i])) return false;
+    }
+    return true;
+  }
+
+  // Handle objects
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  // Check if they have the same number of properties
+  if (keys1.length !== keys2.length) return false;
+
+  // Check if all keys and values match
+  for (let key of keys1) {
+    if (!keys2.includes(key)) return false;
+    if (!deepEqual(obj1[key], obj2[key])) return false;
+  }
+
+  return true;
+}
 
 app.post('/minecraft/admin/resetPassword', async (req, res) => {
   try {

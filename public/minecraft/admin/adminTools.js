@@ -1,8 +1,3 @@
-// --- Confirm Overlay Actions ---
-const ElConfirmOverlay = document.getElementById('confirm-overlay');
-function showConfirmOverlay() { ElConfirmOverlay.style.display = 'flex' }
-function hideConfirmOverlay() { ElConfirmOverlay.style.display = 'none' }
-
 //temp add tool button click event
 const ElAddTool = document.getElementById('add-tool');
 ElAddTool.addEventListener('click', function () {
@@ -74,10 +69,7 @@ function addUITool(tool) {
 
     });
 
-    // Temporary
-    removeBtn.addEventListener('click', () => {
-        showConfirmOverlay();
-    });
+    removeBtn.addEventListener('click', () => onRemove(tool, card));
 
     actions.appendChild(editBtn); actions.appendChild(removeBtn);
     card.appendChild(actions);
@@ -87,9 +79,17 @@ function addUITool(tool) {
     ToolBox.appendChild(card);
 }
 
-// --- Activate Confirm for Submit ---
+// --- Remove Tool ---
 let currentConfirm;
 let confirmType;
+function onRemove(tool, card) {
+    const body = document.querySelector('.confirm-body');
+    body.innerHTML = `<div style="margin-bottom:8px">You are about to delete "<strong>${escapeHtml(tool.name)}</strong>"</div><div style="margin-top:8px;font-size:13px">Confirm to proceed.</div>`;
+    currentConfirm = { tool, card }; confirmType = "RemoveTool";
+    showConfirmOverlay();
+}
+
+// --- Activate Confirm for Submit ---
 function onSubmit(tool, inputEls, card) {
     const values = {};
     for (const k in inputEls) values[k] = inputEls[k].value;
@@ -98,31 +98,10 @@ function onSubmit(tool, inputEls, card) {
     const body = document.querySelector('.confirm-body');
     // show a short list of inputs (escaped) so user can confirm sensitive actions
     const paramList = Object.entries(values).map(([k, v]) => `<div><strong>${escapeHtml(k)}:</strong> ${escapeHtml(String(v).slice(0, 200))}</div>`).join('');
-    body.innerHTML = `<div style="margin-bottom:8px">You are about to run <strong>${escapeHtml(tool.name)}</strong> with the following inputs:</div>${paramList}<div style="margin-top:8px;color:var(--text-dim);font-size:13px">Confirm to proceed.</div>`;
+    body.innerHTML = `<div style="margin-bottom:8px">You are about to run <strong>${escapeHtml(tool.name)}</strong> with the following inputs:</div>${paramList}<div style="margin-top:8px;font-size:13px">Confirm to proceed.</div>`;
     currentConfirm = { tool, values, card }; confirmType = "Submit";
     showConfirmOverlay();
 }
-
-const ElConfirmOverlayCancel = document.getElementById('confirmNo');
-ElConfirmOverlayCancel.addEventListener('click', function () {
-    hideConfirmOverlay();
-    currentConfirm = null;
-});
-
-const ElConfirmOverlayConfirm = document.getElementById('confirmYes');
-ElConfirmOverlayConfirm.addEventListener('click', function () {
-    switch (confirmType) {
-        case "Submit":
-            executeAction(currentConfirm)
-            break;
-        case "RemoveTool":
-
-            break;
-        default:
-            alert(`ERROR : Invalid confirmType "${confirmType}"`)
-    }
-    hideConfirmOverlay()
-});
 
 // executeAction: attempts to call a global function by tool.action with provided values
 async function executeAction({ tool, values, card }) {
@@ -142,6 +121,33 @@ async function executeAction({ tool, values, card }) {
         console.error(err); msgEl.textContent = 'Error: ' + (err && err.message ? err.message : String(err)); msgEl.classList.add('error');
     }
 }
+
+// --- Confirm Overlay ---
+const ElConfirmOverlay = document.getElementById('confirm-overlay');
+function showConfirmOverlay() { ElConfirmOverlay.style.display = 'flex' }
+function hideConfirmOverlay() { ElConfirmOverlay.style.display = 'none' }
+
+const ElConfirmOverlayCancel = document.getElementById('confirmNo');
+ElConfirmOverlayCancel.addEventListener('click', function () {
+    hideConfirmOverlay();
+    currentConfirm = null;
+});
+
+const ElConfirmOverlayConfirm = document.getElementById('confirmYes');
+ElConfirmOverlayConfirm.addEventListener('click', function () {
+    switch (confirmType) {
+        case "Submit":
+            executeAction(currentConfirm)
+            break;
+        case "RemoveTool":
+            removeTool(currentConfirm.tool);
+            currentConfirm.card.remove();
+            break;
+        default:
+            alert(`ERROR : Invalid confirmType "${confirmType}"`)
+    }
+    hideConfirmOverlay()
+});
 
 // --- HTML Formating ---
 function escapeHtml(str) { return String(str).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s])); }
