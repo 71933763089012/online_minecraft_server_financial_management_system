@@ -42,10 +42,54 @@
         </div>
     </div>
 
-    <!-- <script src="../index.js"></script> -->
-    <!-- <script src="adminTools.js"></script> -->
-    <script>
+    <!-- Overlay -->
+    <div id="confirm-overlay" style="display: none;">
+        <div id="confirm-card">
+            <div class="confirm-title">Are you sure?</div>
+            <div class="confirm-body">
+                <div style="margin-bottom: 8px;">You are about to run <strong>Reset Password</strong> with the following
+                    inputs:</div>
+                <div><strong>mcusername:</strong> 5hk_</div>
+                <div><strong>newPassword:</strong> 'h4cPmTGA+VAVa7</div>
+                <div style="margin-top:8px;">Confirm to proceed</div>
+            </div>
+            <div class="confirm-actions">
+                <button id="confirmNo">Cancel</button>
+                <button id="confirmYes">Confirm</button>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        const ElConfirmOverlay = document.getElementById('confirm-overlay');
+
+        function showConfirmOverlay() {
+            ElConfirmOverlay.style.display = 'flex';
+        }
+
+        function hideConfirmOverlay() {
+            ElConfirmOverlay.style.display = 'none';
+        }
+
+        //temp submit button click event
+        const submitBtn = document.querySelector('.submit-btn');
+        submitBtn.addEventListener('click', function (event) {
+            event.preventDefault();
+            showConfirmOverlay();
+        });
+
+        //temp remove button click event
+        const removeBtn = document.querySelector('.remove');
+        removeBtn.addEventListener('click', function (event) {
+            event.preventDefault();
+            showConfirmOverlay();
+        });
+
+        //temp cancel button click event
+        const ElConfirmOverlayCancel = document.getElementById('confirmNo');
+        ElConfirmOverlayCancel.addEventListener('click', function (event) {
+            hideConfirmOverlay();
+        });
     </script>
 </body>
 
