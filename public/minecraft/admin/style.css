@@ -97,6 +97,7 @@ input,
 select,
 textarea {
     background: #111;
+    color: white;
     border: 3px solid #555;
     padding: 8px;
     font-family: 'Minecraft';
@@ -114,7 +115,7 @@ textarea {
 
 /* Message area under each card (success/error) */
 .card-message {
-    font-size: 13px;
+    font-size: 12px;
     margin: 8px;
     margin-bottom: 0px;
     color: #ddd;

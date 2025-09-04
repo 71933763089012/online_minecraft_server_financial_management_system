@@ -1,22 +1,15 @@
+// --- Confirm Overlay Actions ---
 const ElConfirmOverlay = document.getElementById('confirm-overlay');
-function showConfirmOverlay() {
-    ElConfirmOverlay.style.display = 'flex';
-}
-
-function hideConfirmOverlay() {
-    ElConfirmOverlay.style.display = 'none';
-}
+function showConfirmOverlay() { ElConfirmOverlay.style.display = 'flex' }
+function hideConfirmOverlay() { ElConfirmOverlay.style.display = 'none' }
 
 //temp cancel button click event
 const ElConfirmOverlayCancel = document.getElementById('confirmNo');
-ElConfirmOverlayCancel.addEventListener('click', function (event) {
-    event.preventDefault();
-    hideConfirmOverlay();
-});
+ElConfirmOverlayCancel.addEventListener('click', function () { hideConfirmOverlay() });
 
 //temp cancel button click event
 const ElAddTool = document.getElementById('add-tool');
-ElAddTool.addEventListener('click', function (event) {
+ElAddTool.addEventListener('click', function () {
     addUITool({
         name: "Reset Password",
         inputs: [
@@ -33,6 +26,7 @@ ElAddTool.addEventListener('click', function (event) {
         ],
         action: "newPassword"
     });
+    // addTool();
 });
 
 const ToolBox = document.getElementById('tool-box')
@@ -97,10 +91,24 @@ function addUITool(tool) {
     ToolBox.appendChild(card);
 }
 
-// Temporary
-function onSubmit() {
+// --- Activate Confirm for Submit ---
+let currentConfirm;
+function onSubmit(tool, inputEls, card) {
+    console.log("Submit")
+    const values = {};
+    for (const k in inputEls) values[k] = inputEls[k].value;
+    // basic required-field check: each field must be non-empty
+    for (const k in values) { if (!String(values[k] || '').trim()) { const msg = card.querySelector('.card-message'); msg.textContent = `Missing Field: "${k}"`; msg.classList.add('error'); return; } }
+    const body = document.querySelector('.confirm-body');
+    // show a short list of inputs (escaped) so user can confirm sensitive actions
+    const paramList = Object.entries(values).map(([k, v]) => `<div><strong>${escapeHtml(k)}:</strong> ${escapeHtml(String(v).slice(0, 200))}</div>`).join('');
+    body.innerHTML = `<div style="margin-bottom:8px">You are about to run <strong>${escapeHtml(tool.name)}</strong> with the following inputs:</div>${paramList}<div style="margin-top:8px;color:var(--text-dim);font-size:13px">Confirm to proceed.</div>`;
+    currentConfirm = { tool, values, card };
     showConfirmOverlay();
 }
+
+// --- HTML Formating ---
+function escapeHtml(str) { return String(str).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s])); }
 
 // --- TOOLS ---
 async function addTool(tool) {
