@@ -14,10 +14,10 @@
         <div class=admin-shell>
             <header>
                 Admin Tools
-                <button class="add-tool">Add Tool</button>
+                <button class="add-tool" id="add-tool">Add Tool</button>
             </header>
             <div class=tools-area>
-                <div class="tool-grid">
+                <div class="tool-grid" , id="tool-box">
                     <div class="tool-card">
                         <div class="tool-title">Reset Password</div>
                         <div class="tool-body">
@@ -35,7 +35,7 @@
                             <button class="edit">Edit</button>
                             <button class="remove">Remove</button>
                         </div>
-                        <div class="card-message"></div>
+                        <div class="card-message">Return Message</div>
                     </div>
                 </div>
             </div>
@@ -62,7 +62,6 @@
 
     <script>
         const ElConfirmOverlay = document.getElementById('confirm-overlay');
-
         function showConfirmOverlay() {
             ElConfirmOverlay.style.display = 'flex';
         }
@@ -71,25 +70,96 @@
             ElConfirmOverlay.style.display = 'none';
         }
 
-        //temp submit button click event
-        const submitBtn = document.querySelector('.submit-btn');
-        submitBtn.addEventListener('click', function (event) {
-            event.preventDefault();
-            showConfirmOverlay();
-        });
-
-        //temp remove button click event
-        const removeBtn = document.querySelector('.remove');
-        removeBtn.addEventListener('click', function (event) {
-            event.preventDefault();
-            showConfirmOverlay();
-        });
-
         //temp cancel button click event
         const ElConfirmOverlayCancel = document.getElementById('confirmNo');
         ElConfirmOverlayCancel.addEventListener('click', function (event) {
+            event.preventDefault();
             hideConfirmOverlay();
         });
+
+        //temp cancel button click event
+        const ElAddTool = document.getElementById('add-tool');
+        ElAddTool.addEventListener('click', function (event) {
+            addUITool({
+                name: "test name",
+                inputs: [
+                    {
+                        key: "testkey",
+                        label: "test input",
+                        type: "text"
+                    }
+                ],
+                action: "testfunction"
+            });
+        });
+
+        const ToolBox = document.getElementById('tool-box')
+        function addUITool(tool) {
+            const card = document.createElement('div'); card.className = 'tool-card';
+            const title = document.createElement('div'); title.className = 'tool-title'; title.textContent = tool.name;
+            const body = document.createElement('div'); body.className = 'tool-body';
+            const inputEls = {}; // map of key->element for reading values later
+
+            // Build the input fields for the tool based on its inputs definition
+            (tool.inputs || []).forEach(inp => {
+                const fieldWrap = document.createElement('div');
+                const label = document.createElement('label'); label.textContent = inp.label || inp.key;
+                fieldWrap.appendChild(label);
+                let el;
+                // support textarea, select and default to <input>
+                if (inp.type === 'textarea') {
+                    el = document.createElement('textarea')
+                } else if (inp.type === 'select') {
+                    el = document.createElement('select');
+                    (inp.options || []).forEach(o => { const opt = document.createElement('option'); opt.value = o.value; opt.textContent = o.label; el.appendChild(opt); });
+                } else { el = document.createElement('input'); el.type = inp.type || 'text' }
+                el.placeholder = inp.placeholder || '';
+                el.dataset.key = inp.key;
+                // Clear any card message when user edits fields (simple UX nicety)
+                el.addEventListener('input', () => { const msg = card.querySelector('.card-message'); if (msg) msg.textContent = ''; });
+                fieldWrap.appendChild(el);
+
+                body.appendChild(fieldWrap);
+                inputEls[inp.key] = el;
+            });
+
+            card.appendChild(title);
+            card.appendChild(body);
+
+            // Submit button triggers onSubmit which shows confirm overlay
+            const submit = document.createElement('button'); submit.className = 'submit-btn'; submit.textContent = 'Submit';
+            submit.addEventListener('click', () => onSubmit(tool, inputEls, card));
+            card.appendChild(submit);
+
+            // New: action buttons (Edit / Remove)
+            const actions = document.createElement('div'); actions.className = 'card-actions';
+            const editBtn = document.createElement('button'); editBtn.className = 'edit'; editBtn.textContent = 'Edit';
+            const removeBtn = document.createElement('button'); removeBtn.className = 'remove'; removeBtn.textContent = 'Remove';
+
+            // Wire the buttons to call globally-exposed handlers if present, otherwise default local handlers.
+            // Temporary
+            editBtn.addEventListener('click', () => {
+
+            });
+
+            // Temporary
+            removeBtn.addEventListener('click', () => {
+                event.preventDefault();
+                showConfirmOverlay();
+            });
+
+            actions.appendChild(editBtn); actions.appendChild(removeBtn);
+            card.appendChild(actions);
+
+            const msg = document.createElement('div'); msg.className = 'card-message'; card.appendChild(msg);
+
+            ToolBox.appendChild(card);
+        }
+
+        // Temporary
+        function onSubmit() {
+            showConfirmOverlay();
+        }
     </script>
 </body>
 

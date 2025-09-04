@@ -109,12 +109,14 @@ textarea {
     display: block;
     width: 100%;
     font-size: 16px;
+    margin-top: 8px;
 }
 
 /* Message area under each card (success/error) */
 .card-message {
     font-size: 13px;
-    margin-top: 8px;
+    margin: 8px;
+    margin-bottom: 0px;
     color: #ddd;
     min-height: 1.2em;
 }
