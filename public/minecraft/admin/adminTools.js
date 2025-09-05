@@ -49,7 +49,7 @@ async function importTools(json) {
             body: json
         });
         if (!response.ok && (response.status == 401 || response.status == 403)) window.location.reload();
-        return await response.text()
+        return await response.json()
     } catch (e) {
         alert("Error: " + e);
     }
@@ -242,9 +242,9 @@ ElConfirmOverlayConfirm.addEventListener('click', async function () {
             closeEditor();
             break;
         case "ImportTools":
-            await importTools(currentConfirm.json);
+            const newTools = await importTools(currentConfirm);
             ToolBox.innerHTML = '';
-            currentConfirm.body.forEach(tool => { addUITool(tool); });
+            newTools.forEach(tool => { addUITool(tool); });
             break;
         default:
             alert(`ERROR : Invalid confirmType "${confirmType}"`)
@@ -391,11 +391,10 @@ function handleFile(file) {
     reader.onload = async function (event) {
         try {
             const fileContent = event.target.result;
-            const jsonBody = JSON.parse(fileContent);
 
-            document.querySelector('.confirm-body').innerHTML = `<div style="margin-bottom:8px">You're about to import "<strong>${escapeHtml(file.name)}</strong>".</div>This will delete every current tool, with no easy way to retrieve them again.<div></div><div style="margin-top:8px">Confirm to import.</div>`;
+            document.querySelector('.confirm-body').innerHTML = `<div style="margin-bottom:8px">You're about to import "<strong>${escapeHtml(file.name)}</strong>".</div><div style="margin-top:8px">Confirm to import.</div>`;
             confirmType = "ImportTools";
-            currentConfirm = { json: fileContent, body: jsonBody };
+            currentConfirm = fileContent
             showConfirmOverlay();
         } catch (error) {
             console.error('Error parsing JSON:', error);
