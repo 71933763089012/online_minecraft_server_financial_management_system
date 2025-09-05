@@ -100,7 +100,7 @@ function addUITool(tool) {
     const removeBtn = document.createElement('button'); removeBtn.className = 'remove'; removeBtn.textContent = 'Remove';
 
     // Wire the buttons to call globally-exposed handlers if present, otherwise default local handlers.
-    editBtn.addEventListener('click', () => openEditor(tool));
+    editBtn.addEventListener('click', () => openEditor(tool, card));
     removeBtn.addEventListener('click', () => onRemove(tool, card));
 
     actions.appendChild(editBtn); actions.appendChild(removeBtn);
@@ -109,6 +109,51 @@ function addUITool(tool) {
     const msg = document.createElement('div'); msg.className = 'card-message'; card.appendChild(msg);
 
     ToolBox.appendChild(card);
+}
+
+function changeUITool(card, tool) {
+    const title = card.querySelector('.tool-title'); title.textContent = tool.name;
+    const body = card.querySelector('.tool-body');
+    body.innerHTML = '';
+    const inputEls = {};
+
+    // Build the input fields for the tool based on its inputs definition
+    (tool.inputs || []).forEach(inp => {
+        const fieldWrap = document.createElement('div');
+        const label = document.createElement('label'); label.textContent = inp.label || inp.key;
+        fieldWrap.appendChild(label);
+        let el;
+        // support textarea, select and default to <input>
+        if (inp.type === 'textarea') {
+            el = document.createElement('textarea')
+        } else if (inp.type === 'select') {
+            el = document.createElement('select');
+            (inp.options || []).forEach(o => { const opt = document.createElement('option'); opt.value = o.value; opt.textContent = o.label; el.appendChild(opt); });
+        } else { el = document.createElement('input'); el.type = inp.type || 'text' }
+        el.placeholder = inp.placeholder || '';
+        el.dataset.key = inp.key;
+        // Clear any card message when user edits fields (simple UX nicety)
+        el.addEventListener('input', () => { const msg = card.querySelector('.card-message'); if (msg) msg.textContent = ''; });
+        fieldWrap.appendChild(el);
+
+        body.appendChild(fieldWrap);
+        inputEls[inp.key] = el;
+    });
+
+    const submit = resetNode(card.querySelector('.submit-btn'));
+    const actions = card.querySelector('.card-actions');
+    const editBtn = resetNode(actions.querySelector('.edit'));
+    const removeBtn = resetNode(actions.querySelector('.remove'));
+
+    submit.addEventListener('click', () => onSubmit(tool, inputEls, card));
+    editBtn.addEventListener('click', () => openEditor(tool, card));
+    removeBtn.addEventListener('click', () => onRemove(tool, card));
+}
+
+function resetNode(oldNode) {
+    const n = oldNode.cloneNode(true);
+    oldNode.parentNode.replaceChild(n, oldNode);
+    return n
 }
 
 // --- Remove Tool ---
@@ -179,7 +224,7 @@ ElConfirmOverlayConfirm.addEventListener('click', async function () {
             break;
         case "ChangeTool":
             await changeTool(currentConfirm.old, currentConfirm.new);
-            // WIP
+            changeUITool(currentConfirm.card, currentConfirm.new);
             closeEditor();
             break;
         default:
@@ -201,7 +246,7 @@ const editorCancel = document.getElementById('editorCancel');
 const editorSave = document.getElementById('editorSave');
 
 let hasPrefill;
-function openEditor(prefill) {
+function openEditor(prefill, card) {
     editorName.value = (prefill && prefill.name) || '';
     editorAction.value = (prefill && prefill.action) || '';
     editorInputs.innerHTML = '';
@@ -215,6 +260,7 @@ function openEditor(prefill) {
     // focus the name input if there is no prefill
     hasPrefill = prefill || false;
     if (hasPrefill === false) setTimeout(() => editorName.focus(), 50);
+    else hasPrefill = { tool: hasPrefill, card };
 }
 
 function closeEditor() { editorOverlay.style.display = 'none'; }
@@ -269,7 +315,7 @@ editorSave.addEventListener('click', () => {
     showConfirmOverlay();
     if (hasPrefill) {
         confirmType = "ChangeTool";
-        currentConfirm = { new: { name, inputs, action }, old: hasPrefill };
+        currentConfirm = { new: { name, inputs, action }, old: hasPrefill.tool, card: hasPrefill.card };
         return;
     }
     confirmType = "AddTool";
