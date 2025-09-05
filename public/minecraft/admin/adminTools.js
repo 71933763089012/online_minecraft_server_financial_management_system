@@ -27,6 +27,20 @@ async function removeTool(tool) {
     }
 }
 
+async function changeTool(old, fresh) {
+    try {
+        const response = await fetch("/minecraft/admin/changeTool", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ old, fresh })
+        });
+        if (!response.ok && (response.status == 401 || response.status == 403)) window.location.reload();
+        return await response.text()
+    } catch (e) {
+        alert("Error: " + e);
+    }
+}
+
 async function newPassword(input) {
     try {
         const response = await fetch("/minecraft/admin/resetPassword", {
@@ -86,11 +100,7 @@ function addUITool(tool) {
     const removeBtn = document.createElement('button'); removeBtn.className = 'remove'; removeBtn.textContent = 'Remove';
 
     // Wire the buttons to call globally-exposed handlers if present, otherwise default local handlers.
-    // Temporary
-    editBtn.addEventListener('click', () => {
-
-    });
-
+    editBtn.addEventListener('click', () => openEditor(tool));
     removeBtn.addEventListener('click', () => onRemove(tool, card));
 
     actions.appendChild(editBtn); actions.appendChild(removeBtn);
@@ -167,6 +177,11 @@ ElConfirmOverlayConfirm.addEventListener('click', async function () {
             addUITool(currentConfirm);
             closeEditor();
             break;
+        case "ChangeTool":
+            await changeTool(currentConfirm.old, currentConfirm.new);
+            // WIP
+            closeEditor();
+            break;
         default:
             alert(`ERROR : Invalid confirmType "${confirmType}"`)
     }
@@ -174,7 +189,7 @@ ElConfirmOverlayConfirm.addEventListener('click', async function () {
 });
 
 // --- Editor logic ---
-document.getElementById('add-tool').addEventListener('click', openEditor);
+document.getElementById('add-tool').addEventListener('click', () => openEditor());
 
 // Grabbing DOM references used by the editor
 const editorOverlay = document.getElementById('editorOverlay');
@@ -185,6 +200,7 @@ const editorAction = document.getElementById('toolAction');
 const editorCancel = document.getElementById('editorCancel');
 const editorSave = document.getElementById('editorSave');
 
+let hasPrefill;
 function openEditor(prefill) {
     editorName.value = (prefill && prefill.name) || '';
     editorAction.value = (prefill && prefill.action) || '';
@@ -197,7 +213,8 @@ function openEditor(prefill) {
     }
     editorOverlay.style.display = 'flex';
     // focus the name input if there is no prefill
-    if (!prefill) setTimeout(() => editorName.focus(), 50);
+    hasPrefill = prefill || false;
+    if (hasPrefill === false) setTimeout(() => editorName.focus(), 50);
 }
 
 function closeEditor() { editorOverlay.style.display = 'none'; }
@@ -238,11 +255,11 @@ editorSave.addEventListener('click', () => {
     const inputs = [];
     const cards = Array.from(editorInputs.querySelectorAll('.input-card'));
     for (const c of cards) {
-        const k = (c.querySelector('.input-key')?.value || '').trim();
-        const l = (c.querySelector('.input-label')?.value || '').trim();
-        const t = (c.querySelector('select')?.value || 'text');
+        const key = (c.querySelector('.input-key')?.value || '').trim();
+        const label = (c.querySelector('.input-label')?.value || '').trim();
+        const type = (c.querySelector('select')?.value || 'text');
         // if (!k || !l) return alert('Each input must have both a key and a label.');
-        inputs.push({ key: k, label: l, type: t });
+        inputs.push({ key, label, type });
     }
 
     // Show confirm overlay
@@ -250,6 +267,11 @@ editorSave.addEventListener('click', () => {
     const paramList = inputs.map(i => escapeHtml(i.key)).join(', ');
     body.innerHTML = `<div style="margin-bottom:8px">You're about to add "<strong>${escapeHtml(name)}</strong>" to the toolbox.</div><code>${escapeHtml(action)}(${paramList})</code><div style="margin-top:8px">Confirm to add.</div>`;
     showConfirmOverlay();
+    if (hasPrefill) {
+        confirmType = "ChangeTool";
+        currentConfirm = { new: { name, inputs, action }, old: hasPrefill };
+        return;
+    }
     confirmType = "AddTool";
     currentConfirm = { name, inputs, action };
 });

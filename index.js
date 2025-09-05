@@ -430,6 +430,28 @@ app.post('/minecraft/admin/removeTool', async (req, res) => {
   }
 });
 
+app.post('/minecraft/admin/changeTool', async (req, res) => {
+  try {
+    const mcusername = req.cookies.mcusername;
+
+    if (!mcusername) return res.status(401).send('Unauthorized');
+    if (!adminUsers.includes(mcusername)) return res.status(403).send('Forbidden');
+    if (req.cookies.user_id !== hash(mcusername)) return res.status(403).send('Forbidden');
+
+    const { old, fresh } = req.body;
+    const tools = await getAdmin();
+    const toolIndex = tools.findIndex(t => deepEqual(t, old));
+    if (toolIndex == -1) return res.status(404).send("Missing Admin Tool");
+    tools[toolIndex] = fresh;
+    updateAdmin(tools);
+
+    return res.status(200).send("Changed Tool")
+  } catch (err) {
+    console.error("Error adding admin tool:", err);
+    res.status(500).send("Internal server error");
+  }
+});
+
 function deepEqual(obj1, obj2) {
   // Check if both are the same reference
   if (obj1 === obj2) return true;
