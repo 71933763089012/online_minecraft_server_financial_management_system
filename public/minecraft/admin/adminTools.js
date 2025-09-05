@@ -1,25 +1,47 @@
-//temp add tool button click event
-const ElAddTool = document.getElementById('add-tool');
-ElAddTool.addEventListener('click', function () {
-    addUITool({
-        name: "Reset Password",
-        inputs: [
-            {
-                key: "mcusername",
-                label: "MC Username",
-                type: "text"
-            },
-            {
-                key: "password",
-                label: "New Password",
-                type: "pasword"
-            }
-        ],
-        action: "newPassword"
-    });
-    // addTool();
-});
+// --- TOOLS ---
+async function addTool(tool) {
+    try {
+        const response = await fetch("/minecraft/admin/addTool", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(tool)
+        });
+        if (!response.ok && (response.status == 401 || response.status == 403)) window.location.reload();
+        return await response.text()
+    } catch (e) {
+        alert("Error: " + e);
+    }
+}
 
+async function removeTool(tool) {
+    try {
+        const response = await fetch("/minecraft/admin/removeTool", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(tool)
+        });
+        if (!response.ok && (response.status == 401 || response.status == 403)) window.location.reload();
+        return await response.text()
+    } catch (e) {
+        alert("Error: " + e);
+    }
+}
+
+async function newPassword(input) {
+    try {
+        const response = await fetch("/minecraft/admin/resetPassword", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(input)
+        });
+        if (!response.ok && (response.status == 401 || response.status == 403)) window.location.reload();
+        return { message: (await response.text()), ok: response.ok };
+    } catch (e) {
+        alert("Error: " + e);
+    }
+}
+
+// --- Handle Tools ---
 const ToolBox = document.getElementById('tool-box')
 function addUITool(tool) {
     const card = document.createElement('div'); card.className = 'tool-card';
@@ -125,23 +147,25 @@ async function executeAction({ tool, values, card }) {
 // --- Confirm Overlay ---
 const ElConfirmOverlay = document.getElementById('confirm-overlay');
 function showConfirmOverlay() { ElConfirmOverlay.style.display = 'flex' }
-function hideConfirmOverlay() { ElConfirmOverlay.style.display = 'none' }
+function hideConfirmOverlay() { ElConfirmOverlay.style.display = 'none'; currentConfirm = null; }
 
 const ElConfirmOverlayCancel = document.getElementById('confirmNo');
-ElConfirmOverlayCancel.addEventListener('click', function () {
-    hideConfirmOverlay();
-    currentConfirm = null;
-});
+ElConfirmOverlayCancel.addEventListener('click', hideConfirmOverlay);
 
 const ElConfirmOverlayConfirm = document.getElementById('confirmYes');
-ElConfirmOverlayConfirm.addEventListener('click', function () {
+ElConfirmOverlayConfirm.addEventListener('click', async function () {
     switch (confirmType) {
         case "Submit":
-            executeAction(currentConfirm)
+            await executeAction(currentConfirm)
             break;
         case "RemoveTool":
-            removeTool(currentConfirm.tool);
+            await removeTool(currentConfirm.tool);
             currentConfirm.card.remove();
+            break;
+        case "AddTool":
+            await addTool(currentConfirm);
+            addUITool(currentConfirm);
+            closeEditor();
             break;
         default:
             alert(`ERROR : Invalid confirmType "${confirmType}"`)
@@ -149,48 +173,94 @@ ElConfirmOverlayConfirm.addEventListener('click', function () {
     hideConfirmOverlay()
 });
 
+// --- Editor logic ---
+document.getElementById('add-tool').addEventListener('click', openEditor);
+
+// Grabbing DOM references used by the editor
+const editorOverlay = document.getElementById('editorOverlay');
+const editorAddInput = document.getElementById('editorAddInput');
+const editorInputs = document.getElementById('editorInputs');
+const editorName = document.getElementById('toolName');
+const editorAction = document.getElementById('toolAction');
+const editorCancel = document.getElementById('editorCancel');
+const editorSave = document.getElementById('editorSave');
+
+function openEditor(prefill) {
+    editorName.value = (prefill && prefill.name) || '';
+    editorAction.value = (prefill && prefill.action) || '';
+    editorInputs.innerHTML = '';
+    // if prefill has inputs, append them; otherwise add one blank input card
+    if (prefill && Array.isArray(prefill.inputs)) {
+        prefill.inputs.forEach(i => appendInputCard(i.key, i.label, i.type));
+    } else {
+        appendInputCard('', '', 'text');
+    }
+    editorOverlay.style.display = 'flex';
+    // focus the name input if there is no prefill
+    if (!prefill) setTimeout(() => editorName.focus(), 50);
+}
+
+function closeEditor() { editorOverlay.style.display = 'none'; }
+
+// Hook up editor buttons
+editorAddInput.addEventListener('click', () => appendInputCard('', '', 'text'));
+editorCancel.addEventListener('click', closeEditor);
+
+// appendInputCard creates a UI card for an input definition (label/key/type + remove)
+function appendInputCard(key = '', label = '', type = 'text') {
+    const card = document.createElement('div'); card.className = 'input-card';
+    // Label field
+    const labelField = document.createElement('div');
+    labelField.innerHTML = `<label>Label</label><input placeholder="Label" class="input-label" value="${escapeHtml(label)}" />`;
+    // Key field (used as the param name)
+    const keyField = document.createElement('div');
+    keyField.innerHTML = `<label>Key</label><input placeholder="Key" class="input-key" value="${escapeHtml(key)}" />`;
+    // Type selector and remove button
+    const typeRow = document.createElement('div'); typeRow.className = 'mini-row';
+    const typeSelect = document.createElement('select');
+    ['text', 'password', 'number', 'textarea'].forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; if (t === type) o.selected = true; typeSelect.appendChild(o); });
+    const removeBtn = document.createElement('button'); removeBtn.className = 'remove-input'; removeBtn.textContent = 'Remove';
+    removeBtn.addEventListener('click', () => { card.remove(); });
+    typeRow.appendChild(typeSelect); typeRow.appendChild(removeBtn);
+    card.appendChild(labelField); card.appendChild(keyField); card.appendChild(typeRow);
+    editorInputs.appendChild(card);
+    // scroll to end so newly added card is visible
+    setTimeout(() => { editorInputs.scrollLeft = editorInputs.scrollWidth; }, 50);
+}
+
+// Save logic for the editor: validate and then show a confirm overlay before adding the tool
+editorSave.addEventListener('click', () => {
+    const name = (editorName.value || '').trim();
+    const action = (editorAction.value || '').trim();
+    // if (!name) return alert('Tool must have a name');
+    // if (!action) return alert('Tool must have an action function name');
+
+    const inputs = [];
+    const cards = Array.from(editorInputs.querySelectorAll('.input-card'));
+    for (const c of cards) {
+        const k = (c.querySelector('.input-key')?.value || '').trim();
+        const l = (c.querySelector('.input-label')?.value || '').trim();
+        const t = (c.querySelector('select')?.value || 'text');
+        // if (!k || !l) return alert('Each input must have both a key and a label.');
+        inputs.push({ key: k, label: l, type: t });
+    }
+
+    // Show confirm overlay
+    const body = document.querySelector('.confirm-body');
+    const paramList = inputs.map(i => escapeHtml(i.key)).join(', ');
+    body.innerHTML = `<div style="margin-bottom:8px">You're about to add "<strong>${escapeHtml(name)}</strong>" to the toolbox.</div><code>${escapeHtml(action)}(${paramList})</code><div style="margin-top:8px">Confirm to add.</div>`;
+    showConfirmOverlay();
+    confirmType = "AddTool";
+    currentConfirm = { name, inputs, action };
+});
+
+// allow Esc to close editor — simple global key handler
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && editorOverlay.style.display === "flex") {
+        closeEditor();
+        hideConfirmOverlay();
+    }
+});
+
 // --- HTML Formating ---
 function escapeHtml(str) { return String(str).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s])); }
-
-// --- TOOLS ---
-async function addTool(tool) {
-    try {
-        const response = await fetch("/minecraft/admin/addTool", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify(tool)
-        });
-        if (!response.ok && (response.status == 401 || response.status == 403)) window.location.reload();
-        return await response.text()
-    } catch (e) {
-        alert("Error: " + e);
-    }
-}
-
-async function removeTool(tool) {
-    try {
-        const response = await fetch("/minecraft/admin/removeTool", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify(tool)
-        });
-        if (!response.ok && (response.status == 401 || response.status == 403)) window.location.reload();
-        return await response.text()
-    } catch (e) {
-        alert("Error: " + e);
-    }
-}
-
-async function newPassword(input) {
-    try {
-        const response = await fetch("/minecraft/admin/resetPassword", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify(input)
-        });
-        if (!response.ok && (response.status == 401 || response.status == 403)) window.location.reload();
-        return { message: (await response.text()), ok: response.ok };
-    } catch (e) {
-        alert("Error: " + e);
-    }
-}

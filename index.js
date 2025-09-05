@@ -419,8 +419,6 @@ app.post('/minecraft/admin/removeTool', async (req, res) => {
     const tool = req.body;
     const tools = await getAdmin();
     const toolIndex = tools.findIndex(t => deepEqual(t, tool));
-    console.log(tool);
-    console.log(tools);
     if (toolIndex == -1) return res.status(404).send("Missing Admin Tool");
     tools.splice(toolIndex, 1)
     updateAdmin(tools);

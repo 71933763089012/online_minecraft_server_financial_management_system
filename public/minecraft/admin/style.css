@@ -183,6 +183,106 @@ textarea {
     justify-content: center;
 }
 
+/* --- Editor overlay --- */
+.editor-overlay {
+    position: fixed;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+    overflow: hidden;
+}
+
+.editor {
+    width: min(1000px, 94vw);
+    max-width: 1100px;
+    max-height: 480px;
+    background: #222;
+    border: 4px solid #555;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+.editor .top-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.editor .top-row>* {
+    flex: 1 1 auto;
+}
+
+/* Viewport for the horizontally scrollable list of input definitions */
+.inputs-viewport {
+    flex: 1 1 auto;
+    min-height: 235px;
+    border: 3px solid #555;
+    padding: 8px;
+    position: relative;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.inputs-scroll {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+    padding-top: 6px;
+}
+
+.input-card {
+    min-width: 240px;
+    max-width: 320px;
+    background: #333;
+    border: 3px solid #555;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: fit-content;
+    align-self: start;
+    font-family: 'Minecraft';
+}
+
+.input-card .mini-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Editor footer */
+.editor-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.editor-footer .right-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.editor-footer button {
+    min-width: 100px;
+}
+
+/* code {
+    font-family: 'Minecraft', monospace;
+} */
+
 /* --- Button Styles ---*/
 button {
     cursor: pointer;
@@ -197,6 +297,7 @@ button {
     background: #555;
     border-color: #7a7a7a;
     color: white;
+    white-space: nowrap;
 }
 
 button:hover {
@@ -210,6 +311,7 @@ button:active {
 }
 
 /* Red */
+.remove-input,
 .card-actions .remove {
     background: #7b2a2a;
     border-color: #aa3b3b;
@@ -222,6 +324,7 @@ button:active {
 }
 
 /* Green */
+#editorSave,
 #confirmYes,
 .card-actions .edit {
     background: #2d8a34;
