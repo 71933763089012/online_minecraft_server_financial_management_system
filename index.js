@@ -452,6 +452,30 @@ app.post('/minecraft/admin/changeTool', async (req, res) => {
   }
 });
 
+app.post('/minecraft/admin/importTools', async (req, res) => {
+  try {
+    const mcusername = req.cookies.mcusername;
+
+    if (!mcusername) return res.status(401).send('Unauthorized');
+    if (!adminUsers.includes(mcusername)) return res.status(403).send('Forbidden');
+    if (req.cookies.user_id !== hash(mcusername)) return res.status(403).send('Forbidden');
+
+    const tools = req.body;
+    if (!Array.isArray(tools)) return res.status(400).send("Invalid Input");
+    tools.forEach(tool => {
+      if (!(typeof tool === 'object' && 'name' in tool && 'inputs' in tool && Array.isArray(tool.inputs) && 'action' in tool))
+        return res.status(400).send("Invalid Input:", tool);
+    });
+
+    updateAdmin(tools);
+
+    return res.status(200).send("Changed Tool")
+  } catch (err) {
+    console.error("Error adding admin tool:", err);
+    res.status(500).send("Internal server error");
+  }
+});
+
 function deepEqual(obj1, obj2) {
   // Check if both are the same reference
   if (obj1 === obj2) return true;

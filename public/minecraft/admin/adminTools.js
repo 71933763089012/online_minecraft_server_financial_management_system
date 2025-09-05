@@ -41,6 +41,20 @@ async function changeTool(old, fresh) {
     }
 }
 
+async function importTools(json) {
+    try {
+        const response = await fetch("/minecraft/admin/importTools", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: json
+        });
+        if (!response.ok && (response.status == 401 || response.status == 403)) window.location.reload();
+        return await response.text()
+    } catch (e) {
+        alert("Error: " + e);
+    }
+}
+
 async function newPassword(input) {
     try {
         const response = await fetch("/minecraft/admin/resetPassword", {
@@ -227,6 +241,11 @@ ElConfirmOverlayConfirm.addEventListener('click', async function () {
             changeUITool(currentConfirm.card, currentConfirm.new);
             closeEditor();
             break;
+        case "ImportTools":
+            await importTools(currentConfirm.json);
+            ToolBox.innerHTML = '';
+            currentConfirm.body.forEach(tool => { addUITool(tool); });
+            break;
         default:
             alert(`ERROR : Invalid confirmType "${confirmType}"`)
     }
@@ -329,6 +348,62 @@ document.addEventListener('keydown', (e) => {
         hideConfirmOverlay();
     }
 });
+
+// --- Import System ---
+document.getElementById('fileInput').addEventListener('change', function (event) {
+    const file = event.target.files[0];
+    if (file) {
+        handleFile(file);
+    }
+});
+
+const shell = document.querySelector('.admin-shell');
+shell.addEventListener('dragover', function (event) {
+    event.preventDefault();
+    shell.style.filter = 'brightness(120%)';
+});
+
+shell.addEventListener('dragleave', function (event) {
+    event.preventDefault();
+    shell.style.filter = 'brightness(100%)';
+});
+
+shell.addEventListener('drop', function (event) {
+    event.preventDefault();
+    shell.style.filter = 'brightness(100%)';
+
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+        const file = files[0];
+        handleFile(file);
+    }
+});
+
+function handleFile(file) {
+    // Check if file is JSON before processing
+    if (!file.name.toLowerCase().endsWith('.json')) {
+        alert('Please select a JSON file (.json)');
+        return;
+    }
+
+    // Read the file
+    const reader = new FileReader();
+    reader.onload = async function (event) {
+        try {
+            const fileContent = event.target.result;
+            const jsonBody = JSON.parse(fileContent);
+
+            document.querySelector('.confirm-body').innerHTML = `<div style="margin-bottom:8px">You're about to import "<strong>${escapeHtml(file.name)}</strong>".</div>This will delete every current tool, with no easy way to retrieve them again.<div></div><div style="margin-top:8px">Confirm to import.</div>`;
+            confirmType = "ImportTools";
+            currentConfirm = { json: fileContent, body: jsonBody };
+            showConfirmOverlay();
+        } catch (error) {
+            console.error('Error parsing JSON:', error);
+            alert('Error:', error);
+        }
+    };
+    reader.readAsText(file);
+}
 
 // --- HTML Formating ---
 function escapeHtml(str) { return String(str).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s])); }

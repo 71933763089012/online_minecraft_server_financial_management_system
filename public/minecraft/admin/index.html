@@ -14,7 +14,11 @@
         <div class=admin-shell>
             <header>
                 Admin Tools
-                <button class="add-tool" id="add-tool">Add Tool</button>
+                <div class="tool-buttons">
+                    <input type="file" id="fileInput" accept=".json" style="display: none;">
+                    <button onclick="document.getElementById('fileInput').click()" class="import">Import</button>
+                    <button class="add" id="add-tool">Add Tool</button>
+                </div>
             </header>
             <div class=tools-area>
                 <div class="tool-grid" , id="tool-box"></div>
@@ -56,7 +60,6 @@
 
             <div class="editor-footer">
                 <button class="btn" id="editorAddInput">Add input</button>
-
                 <div class="right-actions">
                     <button class="btn" id="editorCancel">Cancel</button>
                     <button class="btn primary" id="editorSave">Save</button>

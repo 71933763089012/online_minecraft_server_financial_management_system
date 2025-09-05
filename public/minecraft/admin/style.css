@@ -140,9 +140,17 @@ textarea {
     font-size: 13px;
 }
 
-.add-tool {
+.tool-buttons {
+    align-items: center;
+    justify-content: center;
+    display: flex;
     position: absolute;
-    right: 8px;
+    right: 4px;
+}
+
+.tool-buttons .add,
+.tool-buttons .import {
+    margin: 4px;
 }
 
 /* --- Confirm Overlay ---*/
@@ -318,7 +326,7 @@ button:active {
 }
 
 /* Blue */
-.add-tool {
+.tool-buttons .import {
     background: #274e7a;
     border-color: #3a6ea8;
 }
@@ -326,7 +334,8 @@ button:active {
 /* Green */
 #editorSave,
 #confirmYes,
-.card-actions .edit {
+.card-actions .edit,
+.tool-buttons .add {
     background: #2d8a34;
     border-color: #3da544;
 }
