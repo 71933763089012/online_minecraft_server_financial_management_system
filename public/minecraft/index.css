@@ -238,10 +238,3 @@ input[type="number"] {
     cursor: pointer;
     border-radius: 0;
 }
-
-.account img.mc-face {
-    width: 32px;
-    height: 32px;
-    image-rendering: pixelated;
-    display: block;
-}

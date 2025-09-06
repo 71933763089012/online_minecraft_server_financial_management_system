@@ -145,3 +145,11 @@ button:active {
     background: #2d8a34;
     border-color: #3da544;
 }
+
+/* Misc */
+img.mc-face {
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+    display: block;
+}

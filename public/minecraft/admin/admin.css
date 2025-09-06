@@ -1,4 +1,3 @@
-/* --- Reset & page background --- */
 header {
     display: flex;
     align-items: center;
@@ -11,10 +10,18 @@ header {
     position: relative;
 }
 
-/* --- The square --- */
+#root {
+    position: relative;
+    min-height: 100vh;
+    max-height: 100vh;
+    width: 100%;
+    overflow: auto;
+}
+
+/* --- Tool box --- */
 .admin-shell {
     width: min(1200px, 95vw);
-    height: 75vh;
+    height: max(400px, 75vh);
     margin: 4vh auto;
     background: #222;
     border: 4px solid var(--mc-darkgray);
@@ -290,3 +297,63 @@ textarea {
 .editor-footer button {
     min-width: 100px;
 }
+
+/* User database */
+.user-overview {
+    width: min(1200px, 95vw);
+    height: max(400px, 75vh);
+    margin: 4vh auto;
+    background: #222;
+    border: 4px solid var(--mc-darkgray);
+    padding: 18px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+}
+
+.user-area {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: 12px;
+    margin-top: 6px;
+}
+
+.user-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    align-items: start;
+}
+
+.user-card {
+    background: #333;
+    border: 3px solid var(--mc-darkgray);
+    padding: 12px;
+    gap: 12px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: left;
+    height: fit-content;
+    cursor: pointer;
+}
+
+.user-card:hover {
+    border-color: var(--mc-gold);
+}
+
+img.mc-face {
+    width: 48px;
+    height: 48px;
+}
+
+.user-name {
+    display: inline;
+    overflow: hidden;
+    max-height: 48px;
+    font-size: 18px;
+}
+
+/* User editor */
