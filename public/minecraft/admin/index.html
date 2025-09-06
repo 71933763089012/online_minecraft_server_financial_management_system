@@ -25,15 +25,11 @@
                 <div class="tool-grid" id="tool-box"></div>
             </div>
         </div>
+
         <div class="user-overview">
             <header>Users</header>
             <div class=user-area>
-                <div class="user-grid">
-                    <div class="user-card">
-                        <img class="mc-face" src="/minecraft/avatar" alt="Minecraft Account" />
-                        <div class="user-name">Albert Vinther</div>
-                    </div>
-                </div>
+                <div class="user-grid"></div>
             </div>
         </div>
     </div>
@@ -82,10 +78,13 @@
 
     <script src="../index.js"></script>
     <script src="adminTools.js"></script>
+    <script src="userOverview.js"></script>
     <script async>
         (async () => {
             const tools = await getAdmin();
             tools.forEach(tool => { addUITool(tool) });
+            const accounts = await getAccounts();
+            accounts.forEach(account => { addUIUser(account) });
         })()
     </script>
 </body>

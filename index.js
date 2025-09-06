@@ -397,8 +397,21 @@ app.get('/minecraft/AdminTools', async (req, res) => {
   if (!adminUsers.includes(mcusername)) return res.status(403).send('Forbidden');
   if (req.cookies.user_id !== hash(mcusername)) return res.status(403).send('Forbidden');
 
-  res.status(200);
-  return res.json(await getAdmin());
+  return res.status(200).json(await getAdmin());
+});
+
+app.get('/minecraft/admin/getAccounts', async (req, res) => {
+  try {
+    const mcusername = req.cookies.mcusername;
+    if (!mcusername) return res.status(401).send('Unauthorized');
+    if (!adminUsers.includes(mcusername)) return res.status(403).send('Forbidden');
+    if (req.cookies.user_id !== hash(mcusername)) return res.status(403).send('Forbidden');
+
+    return res.status(200).json(await readAccounts());
+  } catch (err) {
+    console.error("Error resetting hash:", err);
+    res.status(500).send("Internal server error");
+  }
 });
 
 app.post('/minecraft/admin/addTool', async (req, res) => {
