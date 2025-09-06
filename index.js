@@ -327,6 +327,8 @@ let invalidMcusernames = []
 async function validateAccountSetting(key, value) {
   if (value === '') return 'This should be filled out';
 
+  if (key == 'realname' && !/^[a-zA-Z\s]+$/.test(value)) return 'Not a real name';
+
   if (key == 'mcusername') {
     if (!/^[A-Za-z0-9_]{3,16}$/.test(value)) return 'Invalid Minecraft username';
     if (invalidMcusernames.includes(value)) return 'This Minecraft username does not exist';
