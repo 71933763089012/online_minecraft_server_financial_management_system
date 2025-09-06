@@ -1,16 +1,4 @@
 /* --- Reset & page background --- */
-html,
-body {
-    height: 100%;
-    color: white;
-}
-
-body {
-    margin: 0;
-    background: #3c6e71;
-    font-family: 'Minecraft', monospace;
-}
-
 header {
     display: flex;
     align-items: center;
@@ -19,7 +7,7 @@ header {
     font-size: 28px;
     margin: 0;
     padding-bottom: 6px;
-    border-bottom: 2.4px solid #888;
+    border-bottom: 2.4px solid var(--mc-gray);
     position: relative;
 }
 
@@ -29,7 +17,7 @@ header {
     height: 75vh;
     margin: 4vh auto;
     background: #222;
-    border: 4px solid #555;
+    border: 4px solid var(--mc-darkgray);
     padding: 18px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
     display: flex;
@@ -85,11 +73,7 @@ label {
 input,
 select,
 textarea {
-    background: #111;
-    color: white;
-    border: 3px solid #555;
     padding: 8px;
-    font-family: 'Minecraft';
     font-size: 14px;
     outline: none;
     width: 100%;
@@ -140,6 +124,7 @@ textarea {
 .tool-buttons .add,
 .tool-buttons .import {
     margin: 4px;
+    font-size: 14px;
 }
 
 /* --- Confirm Overlay ---*/
@@ -156,7 +141,7 @@ textarea {
 #confirm-card {
     width: clamp(280px, 46vw, 560px);
     background: #222;
-    border: 4px solid #555;
+    border: 4px solid var(--mc-darkgray);
     padding: 16px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
     position: absolute;
@@ -170,7 +155,6 @@ textarea {
 
 .confirm-body {
     font-size: 14px;
-    color: #ddd;
     margin-bottom: 12px;
 }
 
@@ -196,7 +180,7 @@ textarea {
     max-width: 1100px;
     max-height: 480px;
     background: #222;
-    border: 4px solid #555;
+    border: 4px solid var(--mc-darkgray);
     padding: 16px;
     display: flex;
     flex-direction: column;
@@ -220,7 +204,7 @@ textarea {
 .inputs-viewport {
     flex: 1 1 auto;
     min-height: 235px;
-    border: 3px solid #555;
+    border: 3px solid var(--mc-darkgray);
     padding: 8px;
     position: relative;
     overflow: hidden;
@@ -242,7 +226,7 @@ textarea {
     min-width: 240px;
     max-width: 320px;
     background: #333;
-    border: 3px solid #555;
+    border: 3px solid var(--mc-darkgray);
     padding: 8px;
     display: flex;
     flex-direction: column;
@@ -275,7 +259,3 @@ textarea {
 .editor-footer button {
     min-width: 100px;
 }
-
-/* code {
-    font-family: 'Minecraft', monospace;
-} */

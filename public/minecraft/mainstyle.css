@@ -85,6 +85,8 @@ input:focus {
     border-color: var(--mc-gold);
 }
 
+textarea,
+select,
 input {
     font-family: 'Minecraft', monospace;
     border: 3px solid var(--mc-darkgray);
@@ -107,7 +109,6 @@ button {
     background: var(--mc-darkgray);
     border-color: var(--mc-gray);
     white-space: nowrap;
-    font-size: 18px;
     color: white;
 }
 
