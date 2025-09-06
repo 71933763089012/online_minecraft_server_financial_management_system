@@ -370,7 +370,18 @@ app.listen(PORT, () => {
   console.log(`Server running on port: ${PORT}`);
 });
 
-const hashkey = await fs.readFile('./data/hashkey')
+let hashkey;
+try {
+  hashkey = await fs.readFile('./data/hashkey');
+} catch (error) {
+  await randomizeHash();
+}
+
+async function randomizeHash(size = 32) {
+  const randomKey = crypto.randomBytes(size);
+  await fs.writeFile('./data/hashkey', randomKey);
+  hashkey = randomKey;
+}
 
 function hash(input) {
   return crypto.createHmac('sha256', hashkey).update(input).digest('hex');
@@ -425,7 +436,7 @@ app.post('/minecraft/admin/removeTool', async (req, res) => {
 
     return res.status(200).send("Added Tool")
   } catch (err) {
-    console.error("Error adding admin tool:", err);
+    console.error("Error removing admin tool:", err);
     res.status(500).send("Internal server error");
   }
 });
@@ -447,7 +458,7 @@ app.post('/minecraft/admin/changeTool', async (req, res) => {
 
     return res.status(200).send("Changed Tool")
   } catch (err) {
-    console.error("Error adding admin tool:", err);
+    console.error("Error updating admin tool:", err);
     res.status(500).send("Internal server error");
   }
 });
@@ -473,7 +484,7 @@ app.post('/minecraft/admin/importTools', async (req, res) => {
 
     return res.status(200).json(tools);
   } catch (err) {
-    console.error("Error adding admin tool:", err);
+    console.error("Error importing admin tools:", err);
     res.status(500).send("Internal server error");
   }
 });
@@ -495,7 +506,7 @@ app.post('/minecraft/admin/reorderTools', async (req, res) => {
 
     return res.status(200).send("Succesfully reordered tools");
   } catch (err) {
-    console.error("Error adding admin tool:", err);
+    console.error("Error reordering admin tools:", err);
     res.status(500).send("Internal server error");
   }
 });
@@ -578,6 +589,22 @@ app.post('/minecraft/admin/resetPassword', async (req, res) => {
     return res.status(200).send("Success");
   } catch (err) {
     console.error("Error updating Account:", err);
+    res.status(500).send("Internal server error");
+  }
+});
+
+app.post('/minecraft/admin/regenerateHashkey', async (req, res) => {
+  try {
+    const mcusername = req.cookies.mcusername;
+    if (!mcusername) return res.status(401).send('Unauthorized');
+    if (!adminUsers.includes(mcusername)) return res.status(403).send('Forbidden');
+    if (req.cookies.user_id !== hash(mcusername)) return res.status(403).send('Forbidden');
+
+    await randomizeHash();
+
+    return res.status(200).send("Success");
+  } catch (err) {
+    console.error("Error resetting hash:", err);
     res.status(500).send("Internal server error");
   }
 });
