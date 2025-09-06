@@ -328,7 +328,7 @@ async function validateAccountSetting(key, value) {
   if (value === '') return 'This should be filled out';
 
   if (key == 'mcusername') {
-    if (!/^[A-Za-z0-9_]{1,16}$/.test(value)) return 'Invalid Minecraft username';
+    if (!/^[A-Za-z0-9_]{3,16}$/.test(value)) return 'Invalid Minecraft username';
     if (invalidMcusernames.includes(value)) return 'This Minecraft username does not exist';
 
     const accounts = await readAccounts();
