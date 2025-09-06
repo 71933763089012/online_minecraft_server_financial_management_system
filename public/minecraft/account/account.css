@@ -1,0 +1,121 @@
+/* Load Minecraft font */
+:root {
+    --panel: #222;
+    --panel-2: #333;
+    --overlay: rgba(0, 0, 0, 0.6);
+}
+
+.account-container {
+    background-color: var(--panel);
+    padding: 20px;
+    border: 4px solid var(--mc-darkgray);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    text-align: left;
+    width: 420px;
+}
+
+.info-card {
+    background-color: var(--panel-2);
+    border: 3px solid var(--mc-darkgray);
+    padding: 12px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.info-text {
+    flex-grow: 1;
+}
+
+.info-title {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 4px;
+}
+
+.info-value {
+    font-size: 16px;
+    word-break: break-word;
+}
+
+.btn-edit {
+    font-size: 14px;
+    padding: 6px 12px;
+    border-width: 2px;
+    margin-left: 10px;
+    height: fit-content;
+}
+
+.btn {
+    font-size: 18px;
+    padding: 10px 20px;
+    margin: 10px auto 0 auto;
+    width: 250px;
+}
+
+/* ===== Modal ===== */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000;
+}
+
+.overlay.active {
+    display: flex;
+}
+
+.modal {
+    width: 100%;
+    max-width: 520px;
+    background: var(--panel);
+    border: 4px solid var(--mc-darkgray);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    padding: 18px;
+}
+
+.modal-title {
+    text-align: center;
+    font-size: 24px;
+    margin: 6px 0 16px 0;
+}
+
+.field {
+    margin-bottom: 14px;
+}
+
+label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 16px;
+    outline: none;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+.modal-btn {
+    font-size: 16px;
+    padding: 8px 16px;
+}
+
+/* Prevent background scroll when modal is open */
+body.modal-open {
+    overflow: hidden;
+}

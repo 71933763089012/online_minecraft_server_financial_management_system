@@ -1,0 +1,247 @@
+:root {
+    --dropdown-bg: #111;
+}
+
+.wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    box-sizing: border-box;
+}
+
+.card {
+    width: 780px;
+    max-width: 98vw;
+    background: #222;
+    border: 4px solid var(--mc-darkgray);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
+    border-radius: 0;
+    padding: 26px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+}
+
+/* NEW: profile selector */
+.profile-select {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+}
+
+.profile-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 3px solid #3a3a3a;
+    background: #111;
+    font-family: 'Minecraft', monospace;
+    font-size: 16px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-input input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-family: inherit;
+    font-size: 16px;
+    width: 100%;
+}
+
+.profile-input .arrow {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: var(--dropdown-bg);
+    border: 2px solid var(--mc-darkgray);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    z-index: 30;
+    max-height: 260px;
+    overflow: auto;
+    display: none;
+}
+
+.dropdown.open {
+    display: block;
+}
+
+.profile-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.profile-item:last-child {
+    border-bottom: 0
+}
+
+.profile-item .left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.profile-icon {
+    width: 28px;
+    height: 20px;
+    display: inline-block;
+    /* placeholder box for icons; real icons will be supplied later */
+    background: rgba(255, 255, 255, 0.04);
+    border: 2px solid rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.profile-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 14px;
+}
+
+.profile-item.active {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.profile-item.disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.toggle-btn img.toggle-icon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    pointer-events: none;
+    /* so clicking works on the parent .toggle-btn */
+}
+
+.status-button {
+    width: 210px;
+    height: 210px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    font-weight: 700;
+    border: 8px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+    cursor: pointer;
+    user-select: none;
+    transition: transform 150ms ease, box-shadow 150ms ease;
+    text-align: center;
+    padding: 12px;
+}
+
+.status-button:active {
+    transform: scale(0.98);
+}
+
+.status-button.red {
+    background: var(--mc-darkred);
+}
+
+.status-button.green {
+    background: var(--mc-darkgreen);
+}
+
+.balance {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 16px;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    text-align: center;
+    width: 100%;
+    max-width: 320px;
+    border-radius: 0;
+}
+
+.balance small {
+    display: block;
+    font-size: 12px;
+}
+
+.balance .amount {
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.balance .estimate {
+    font-size: 14px;
+    margin-top: 6px;
+}
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    max-width: 320px;
+}
+
+label {
+    font-size: 12px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+input[type="number"] {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 3px solid var(--mc-darkgray);
+    background: black;
+    color: white;
+    font-family: 'Minecraft', monospace;
+    font-size: 13px;
+    border-radius: 0;
+}
+
+.account {
+    position: absolute;
+    right: 26px;
+    top: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.18);
+    border: 3px solid rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    border-radius: 0;
+}
+
+.account img.mc-face {
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+    display: block;
+}

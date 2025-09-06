@@ -1,0 +1,146 @@
+:root {
+    /* Minecraft colors */
+    --mc-darkblue: #0000AA;
+    --mc-darkgreen: #00AA00;
+    --mc-darkaqua: #00AAAA;
+    --mc-darkred: #AA0000;
+    --mc-darkpurple: #AA00AA;
+    --mc-gold: #FFAA00;
+    --mc-gray: #AAA;
+    --mc-darkgray: #555;
+    --mc-blue: #5555FF;
+    --mc-green: #55FF55;
+    --mc-aqua: #55FFFF;
+    --mc-red: #FF5555;
+    --mc-lightpurple: #FF55FF;
+    --mc-yellow: #FFFF55;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* font */
+@font-face {
+    font-family: 'Minecraft';
+    src: url('fonts/Minecraft-Font.ttf') format('truetype');
+}
+
+/* header */
+h1 {
+    text-align: center;
+    color: white;
+    font-size: 32px;
+    margin: 0;
+    margin-bottom: 20px;
+}
+
+/* bacground */
+body {
+    color: white;
+    background-color: var(--mc-darkaqua);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Minecraft', monospace;
+}
+
+/* error messages */
+.error-message {
+    color: #ff4d4d;
+    font-size: 14px;
+    display: block;
+    text-align: center;
+    margin-top: 4px;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.25s ease, opacity 0.25s ease;
+}
+
+.error-message.show {
+    max-height: 6em;
+    opacity: 1;
+}
+
+/* inputs */
+.input-group {
+    margin-bottom: 12px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+input:focus {
+    border-color: var(--mc-gold);
+}
+
+input {
+    font-family: 'Minecraft', monospace;
+    border: 3px solid var(--mc-darkgray);
+    background: black;
+    color: white;
+}
+
+/* buttons */
+button {
+    cursor: pointer;
+    font-family: 'Minecraft';
+    border-width: 3px;
+    border-style: solid;
+    padding: 8px 12px;
+    transition: filter 120ms ease, transform 120ms ease;
+    transition: background-color 0.2s;
+    text-align: center;
+    display: block;
+    line-height: 1;
+    background: var(--mc-darkgray);
+    border-color: var(--mc-gray);
+    white-space: nowrap;
+    font-size: 18px;
+    color: white;
+}
+
+button:hover {
+    filter: brightness(0.92);
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(0);
+    filter: brightness(0.88);
+}
+
+/* --- Button Styles ---*/
+/* Red */
+.remove-input,
+.card-actions .remove {
+    background: #7b2a2a;
+    border-color: #aa3b3b;
+}
+
+/* Blue */
+.tool-buttons .import {
+    background: #274e7a;
+    border-color: #3a6ea8;
+}
+
+/* Green */
+.modal-btn.primary,
+#editorSave,
+#confirmYes,
+.card-actions .edit,
+.tool-buttons .add {
+    background: #2d8a34;
+    border-color: #3da544;
+}

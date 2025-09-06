@@ -1,15 +1,4 @@
-@font-face {
-    font-family: 'Minecraft';
-    src: url('/minecraft/fonts/Minecraft-Font.ttf') format('truetype');
-}
-
 /* --- Reset & page background --- */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
-
 html,
 body {
     height: 100%;
@@ -290,58 +279,3 @@ textarea {
 /* code {
     font-family: 'Minecraft', monospace;
 } */
-
-/* --- Button Styles ---*/
-button {
-    cursor: pointer;
-    font-family: 'Minecraft';
-    border-width: 3px;
-    border-style: solid;
-    padding: 8px 12px;
-    transition: filter 120ms ease, transform 120ms ease;
-    text-align: center;
-    display: inline-block;
-    line-height: 1;
-    background: #555;
-    border-color: #7a7a7a;
-    color: white;
-    white-space: nowrap;
-}
-
-button:hover {
-    filter: brightness(0.92);
-    transform: translateY(-1px);
-}
-
-button:active {
-    transform: translateY(0);
-    filter: brightness(0.88);
-}
-
-/* Red */
-.remove-input,
-.card-actions .remove {
-    background: #7b2a2a;
-    border-color: #aa3b3b;
-}
-
-/* Blue */
-.tool-buttons .import {
-    background: #274e7a;
-    border-color: #3a6ea8;
-}
-
-/* Green */
-#editorSave,
-#confirmYes,
-.card-actions .edit,
-.tool-buttons .add {
-    background: #2d8a34;
-    border-color: #3da544;
-}
-
-/* Yellow */
-.btn.warn {
-    background: #a67b00;
-    border-color: #c98e00;
-}
