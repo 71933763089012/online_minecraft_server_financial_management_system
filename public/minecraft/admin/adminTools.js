@@ -7,7 +7,7 @@ async function addTool(tool) {
             body: JSON.stringify(tool)
         });
         if (!response.ok && (response.status == 401 || response.status == 403)) window.location.reload();
-        return await response.text()
+        return await response.text();
     } catch (e) {
         alert("Error: " + e);
     }
@@ -21,7 +21,7 @@ async function removeTool(tool) {
             body: JSON.stringify(tool)
         });
         if (!response.ok && (response.status == 401 || response.status == 403)) window.location.reload();
-        return await response.text()
+        return await response.text();
     } catch (e) {
         alert("Error: " + e);
     }
@@ -35,7 +35,7 @@ async function changeTool(old, fresh) {
             body: JSON.stringify({ old, fresh })
         });
         if (!response.ok && (response.status == 401 || response.status == 403)) window.location.reload();
-        return await response.text()
+        return await response.text();
     } catch (e) {
         alert("Error: " + e);
     }
@@ -49,7 +49,22 @@ async function importTools(json) {
             body: json
         });
         if (!response.ok && (response.status == 401 || response.status == 403)) window.location.reload();
-        return await response.json()
+        return await response.json();
+    } catch (e) {
+        alert("Error: " + e);
+    }
+}
+
+async function reorderTools(index) {
+    console.log(index)
+    try {
+        const response = await fetch("/minecraft/admin/reorderTools", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(index)
+        });
+        if (!response.ok && (response.status == 401 || response.status == 403)) window.location.reload();
+        return await response.text();
     } catch (e) {
         alert("Error: " + e);
     }
@@ -71,11 +86,32 @@ async function newPassword(input) {
 
 // --- Handle Tools ---
 const ToolBox = document.getElementById('tool-box')
+
+ToolBox.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+});
+
+ToolBox.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const draggedElement = document.querySelector('.dragging');
+    if (draggedElement) {
+        draggedElement.classList.remove('dragging');
+    }
+});
+
 function addUITool(tool) {
     const card = document.createElement('div'); card.className = 'tool-card';
     const title = document.createElement('div'); title.className = 'tool-title'; title.textContent = tool.name;
     const body = document.createElement('div'); body.className = 'tool-body';
     const inputEls = {}; // map of key->element for reading values later
+
+    // Make the card draggable
+    card.draggable = true;
+    card.addEventListener('dragstart', handleDragStart);
+    card.addEventListener('dragend', handleDragEnd);
+    card.addEventListener('dragover', handleDragOver);
+    card.addEventListener('drop', handleDrop);
 
     // Build the input fields for the tool based on its inputs definition
     (tool.inputs || []).forEach(inp => {
@@ -168,6 +204,77 @@ function resetNode(oldNode) {
     const n = oldNode.cloneNode(true);
     oldNode.parentNode.replaceChild(n, oldNode);
     return n
+}
+
+// --- Drag and Drop Event Handlers ---
+let startX;
+function handleDragStart(e) {
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.outerHTML);
+    startX = e.clientX;
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    // Remove all drop indicators
+    document.querySelectorAll('.tool-card').forEach(card => {
+        card.classList.remove('drop-on');
+    });
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+
+    e.dataTransfer.dropEffect = 'move';
+
+    // Don't show drop indicator on the dragged element itself
+    if (this.classList.contains('dragging')) {
+        return false;
+    }
+
+    // Remove existing drop indicators
+    document.querySelectorAll('.tool-card').forEach(card => {
+        card.classList.remove('drop-on');
+    });
+
+    this.classList.add('drop-on');
+
+    return false;
+}
+
+async function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation(); // Stops some browsers from redirecting
+    }
+
+    const draggedElement = document.querySelector('.dragging');
+    if (!draggedElement || draggedElement === this) {
+        return false;
+    }
+
+    // Remove the dragged element from its current position
+    const oldIndex = Array.from(draggedElement.parentElement.children).findIndex(child => child === draggedElement);
+    draggedElement.remove();
+
+    // Insert at new position
+    if (startX > e.clientX) {
+        this.parentNode.insertBefore(draggedElement, this);
+    } else {
+        this.parentNode.insertBefore(draggedElement, this.nextSibling);
+    }
+
+    // Clean up
+    draggedElement.classList.remove('dragging');
+    this.classList.remove('drop-on');
+
+    const newIndex = Array.from(draggedElement.parentElement.children).findIndex(child => child === draggedElement);
+
+    await reorderTools({ oldIndex, newIndex });
+
+    return false;
 }
 
 // --- Remove Tool ---

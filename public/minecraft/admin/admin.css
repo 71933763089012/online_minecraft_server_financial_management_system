@@ -50,6 +50,37 @@ header {
     min-height: 220px;
     max-height: 100%;
     font-family: 'Minecraft';
+    cursor: grab;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.tool-card:active {
+    cursor: grabbing;
+}
+
+.tool-card.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+    z-index: 1;
+}
+
+.tool-card.drop-on {
+    border-color: var(--mc-gold);
+}
+
+.tool-card * {
+    user-select: none;
+}
+
+.tool-card input,
+.tool-card textarea,
+.tool-card select {
+    user-select: text;
+}
+
+.tool-card:hover:not(.dragging) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .tool-title {

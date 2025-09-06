@@ -478,6 +478,28 @@ app.post('/minecraft/admin/importTools', async (req, res) => {
   }
 });
 
+app.post('/minecraft/admin/reorderTools', async (req, res) => {
+  try {
+    const mcusername = req.cookies.mcusername;
+
+    if (!mcusername) return res.status(401).send('Unauthorized');
+    if (!adminUsers.includes(mcusername)) return res.status(403).send('Forbidden');
+    if (req.cookies.user_id !== hash(mcusername)) return res.status(403).send('Forbidden');
+
+    var { newIndex, oldIndex } = req.body;
+    const tools = await getAdmin();
+    if ((newIndex < 0 || newIndex >= tools.length) || (oldIndex < 0 || oldIndex >= tools.length) || (newIndex === oldIndex)) return res.status(400).send("Invalid Index");
+
+    tools.splice(newIndex, 0, tools.splice(oldIndex, 1)[0]);
+    updateAdmin(tools);
+
+    return res.status(200).send("Succesfully reordered tools");
+  } catch (err) {
+    console.error("Error adding admin tool:", err);
+    res.status(500).send("Internal server error");
+  }
+});
+
 function mergeArrays(arrayA, arrayB) {
   const result = [...arrayA];
 
