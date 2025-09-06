@@ -61,8 +61,7 @@
                 </div>
             </div>
 
-            <div class="account" title="Account" role="link" onclick="location.href='/minecraft/account'"
-                aria-label="Account">
+            <div class="account" title="Account" role="link" aria-label="Account">
                 <img class="mc-face" src="/minecraft/avatar" alt="Minecraft Account" />
             </div>
 
@@ -125,6 +124,14 @@
                 unsavedChanges = true;
                 debouncedSave();
             });
+        });
+
+        document.querySelector(".account").addEventListener('click', async () => {
+            await saveSettings({
+                max_cost: document.getElementById("maxCost").value,
+                min_players: document.getElementById("minPlayers").value
+            });
+            location.href = '/minecraft/account';
         });
     </script>
 
