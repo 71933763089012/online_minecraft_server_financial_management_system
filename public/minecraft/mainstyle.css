@@ -137,6 +137,7 @@ button:active {
 }
 
 /* Green */
+.actions #done,
 .modal-btn.primary,
 #editorSave,
 #confirmYes,

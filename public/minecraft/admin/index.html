@@ -61,7 +61,6 @@
                 </div>
             </div>
 
-            <!-- inputsViewport will contain a horizontally scrollable list of input-cards -->
             <div class="inputs-viewport" id="inputsViewport" aria-label="Inputs area">
                 <div class="inputs-scroll" id="editorInputs"></div>
             </div>
@@ -76,9 +75,22 @@
         </div>
     </div>
 
+    <!-- User Account Overlay -->
+    <div id="user-overlay" style="display: none;">
+        <div id="user-card">
+            <h1>Account</h1>
+            <div class="info-cards"></div>
+            <div class="actions">
+                <button id="done">Done</button>
+                <button id="history">View History</button>
+            </div>
+        </div>
+    </div>
+
     <script src="../index.js"></script>
     <script src="adminTools.js"></script>
     <script src="userOverview.js"></script>
+
     <script async>
         (async () => {
             const tools = await getAdmin();

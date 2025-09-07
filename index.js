@@ -315,7 +315,7 @@ app.get('/minecraft/avatar', (req, res) => {
   const username = req.query.u || req.cookies.mcusername; // allow both
   if (!username) return res.status(400).send("No username provided");
 
-  const url = `https://minotar.net/avatar/${encodeURIComponent(username)}/8`;
+  const url = `https://minotar.net/helm/${encodeURIComponent(username)}/8`;
 
   res.set('Cache-Control', 'public, max-age=300');
   return res.redirect(302, url);
@@ -408,6 +408,28 @@ app.get('/minecraft/admin/getAccounts', async (req, res) => {
     if (req.cookies.user_id !== hash(mcusername)) return res.status(403).send('Forbidden');
 
     return res.status(200).json(await readAccounts());
+  } catch (err) {
+    console.error("Error resetting hash:", err);
+    res.status(500).send("Internal server error");
+  }
+});
+
+app.post('/minecraft/admin/getAccount', async (req, res) => {
+  try {
+    let mcusername = req.cookies.mcusername;
+    if (!mcusername) return res.status(401).send('Unauthorized');
+    if (!adminUsers.includes(mcusername)) return res.status(403).send('Forbidden');
+    if (req.cookies.user_id !== hash(mcusername)) return res.status(403).send('Forbidden');
+
+    mcusername = req.body.mcusername;
+    const account = (await readAccounts()).find(acc => acc.mcusername === mcusername);
+
+    if (account) {
+      delete account['password'];
+      return res.status(200).json(account);
+    } else {
+      return res.status(404).send('Account not found');
+    }
   } catch (err) {
     console.error("Error resetting hash:", err);
     res.status(500).send("Internal server error");
