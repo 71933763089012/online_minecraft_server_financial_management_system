@@ -367,6 +367,19 @@ ElConfirmOverlayConfirm.addEventListener('click', async function () {
             ToolBox.innerHTML = '';
             newTools.forEach(tool => { addUITool(tool); });
             break;
+        case "UpdateUserAccount":
+            const account = compileUserChanges(document.querySelector('.info-cards'));
+            setAccount(currentConfirm.mcusername, account);
+            currentConfirm.currentUser.querySelector('.mc-face').src = `/minecraft/avatar/?u=${account.mcusername}`;
+            currentConfirm.currentUser.querySelector('.user-name').textContent = account.realname;
+            const card = resetNode(currentConfirm.currentUser);
+            card.addEventListener('click', async () => {
+                currentUser = card;
+                await openUserOverlay(account.mcusername);
+            })
+
+            closeUserOverlay();
+            break;
         default:
             alert(`ERROR : Invalid confirmType "${confirmType}"`)
     }

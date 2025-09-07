@@ -436,6 +436,27 @@ app.post('/minecraft/admin/getAccount', async (req, res) => {
   }
 });
 
+app.post('/minecraft/admin/setAccount', async (req, res) => {
+  try {
+    let mcusername = req.cookies.mcusername;
+    if (!mcusername) return res.status(401).send('Unauthorized');
+    if (!adminUsers.includes(mcusername)) return res.status(403).send('Forbidden');
+    if (req.cookies.user_id !== hash(mcusername)) return res.status(403).send('Forbidden');
+
+    mcusername = req.body.mcusername;
+    const accounts = await readAccounts();
+    const accountIndex = accounts.findIndex(acc => acc.mcusername === mcusername);
+    if (accountIndex === -1) return res.status(404).send("Account not found");
+    for (const k in req.body.account) { accounts[accountIndex][k] = req.body.account[k] }
+
+    await writeAccounts(accounts);
+    return res.status(200).send("Success");
+  } catch (err) {
+    console.error("Error Updating account settings for", req.body.mcusername, ":", err);
+    res.status(500).send("Internal server error");
+  }
+});
+
 app.post('/minecraft/admin/addTool', async (req, res) => {
   try {
     const mcusername = req.cookies.mcusername;
